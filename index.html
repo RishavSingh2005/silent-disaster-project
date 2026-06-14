@@ -1,0 +1,1215 @@
+/mnt/user-data/outputs/index.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Silent Disaster — Transparent, rule-based flood early signal system for Indian regions.">
+<title>Silent Disaster — Flood Early Signal System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%235b9cf6' stroke-width='2.5'/><circle cx='16' cy='16' r='5' fill='%235b9cf6' opacity='0.65'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&family=Lora:wght@500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ═══════════════════════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg0: #0c1018;
+  --bg1: #131820;
+  --bg2: #1a2232;
+  --bg3: #212c40;
+  --bd:  rgba(255,255,255,0.06);
+  --bd2: rgba(255,255,255,0.11);
+
+  --t1: #dce4f0;
+  --t2: #8596aa;
+  --t3: #4a5870;
+
+  --blue:    #5b9cf6;
+  --orange:  #e8874e;
+
+  --green:    #3fa870;
+  --green-bg: rgba(63,168,112,0.10);
+  --green-bd: rgba(63,168,112,0.22);
+  --amber:    #c9953c;
+  --amber-bg: rgba(201,149,60,0.10);
+  --amber-bd: rgba(201,149,60,0.22);
+  --red:      #c4504a;
+  --red-bg:   rgba(196,80,74,0.10);
+  --red-bd:   rgba(196,80,74,0.22);
+
+  --mono:   'IBM Plex Mono', monospace;
+  --sans:   'Inter', system-ui, sans-serif;
+  --serif:  'Lora', Georgia, serif;
+  --r: 4px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg0);
+  color: var(--t1);
+  font-size: 14px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LANDING PAGE
+═══════════════════════════════════════════════════════════ */
+#pg-landing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.l-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 52px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.l-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.l-logo-mark {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--blue);
+  display: flex; align-items: center; justify-content: center;
+}
+.l-logo-mark::after {
+  content: '';
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--blue);
+  opacity: 0.65;
+}
+
+.l-logo-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t2);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.l-header-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t3);
+  letter-spacing: 0.04em;
+}
+
+.l-hero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 52px;
+  position: relative;
+  overflow: hidden;
+}
+
+.l-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(91,156,246,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91,156,246,0.025) 1px, transparent 1px);
+  background-size: 54px 54px;
+  pointer-events: none;
+}
+
+.l-hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  max-width: 1100px;
+  width: 100%;
+  align-items: center;
+  position: relative;
+}
+
+.l-hero-left h1 {
+  font-family: var(--serif);
+  font-size: 3.2rem;
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.01em;
+  color: var(--t1);
+  margin-bottom: 22px;
+}
+.l-hero-left h1 em { font-style: normal; color: var(--blue); }
+
+.l-tagline {
+  font-size: 15px;
+  color: var(--t2);
+  line-height: 1.78;
+  margin-bottom: 40px;
+  max-width: 440px;
+}
+
+.btn-enter {
+  display: inline-block;
+  padding: 12px 28px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blue);
+  background: transparent;
+  border: 1px solid var(--blue);
+  cursor: pointer;
+  border-radius: var(--r);
+  transition: background 0.15s, color 0.15s;
+}
+.btn-enter:hover { background: var(--blue); color: var(--bg0); }
+
+.l-hero-right {
+  padding-left: 48px;
+  border-left: 1px solid var(--bd2);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.ctx-block .ctx-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--t3);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+.ctx-block p {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.75;
+}
+
+.l-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 52px;
+  border-top: 1px solid var(--bd);
+}
+.l-footer span {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t3);
+  letter-spacing: 0.04em;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════ */
+#pg-dash { display: none; }
+
+/* Nav */
+.d-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--bd);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 13px 36px;
+}
+
+.d-nav-left { display: flex; align-items: center; gap: 18px; }
+
+.d-live {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--green);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.d-live-dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: blink 4s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:.9} 50%{opacity:.25} }
+
+.d-nav-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t2);
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  padding-left: 18px;
+  border-left: 1px solid var(--bd2);
+}
+
+.d-nav-right { display: flex; align-items: center; gap: 24px; }
+
+.d-ts {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t3);
+}
+
+.btn-back {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t3);
+  background: none; border: none;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  padding: 0;
+  transition: color 0.12s;
+}
+.btn-back:hover { color: var(--t1); }
+
+/* Controls */
+.d-controls {
+  background: var(--bg1);
+  border-bottom: 1px solid var(--bd);
+  padding: 12px 36px;
+  display: flex; align-items: center; gap: 28px;
+  flex-wrap: wrap;
+}
+
+.ctrl-group { display: flex; align-items: center; gap: 10px; }
+
+.ctrl-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--t3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+#region-select {
+  background: var(--bg2);
+  border: 1px solid var(--bd2);
+  color: var(--t1);
+  font-family: var(--sans);
+  font-size: 13px;
+  padding: 7px 34px 7px 12px;
+  border-radius: var(--r);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238596aa'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  min-width: 230px;
+  cursor: pointer;
+}
+#region-select:focus { border-color: var(--blue); }
+
+.win-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 7px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--bd2);
+  color: var(--t2);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.win-btn:hover { border-color: var(--blue); color: var(--t1); }
+.win-btn.active { background: var(--blue); border-color: var(--blue); color: var(--bg0); font-weight: 500; }
+
+/* Layout */
+.d-body {
+  display: grid;
+  grid-template-columns: 308px 1fr;
+}
+
+.d-sidebar {
+  border-right: 1px solid var(--bd);
+  padding: 28px 22px;
+  display: flex; flex-direction: column; gap: 30px;
+  background: var(--bg1);
+  min-height: calc(100vh - 108px);
+}
+
+.d-content {
+  padding: 28px 34px;
+  display: flex; flex-direction: column; gap: 32px;
+}
+
+/* Section headers */
+.sec-head { margin-bottom: 16px; }
+.sec-title {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 500;
+  color: var(--t3);
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.sec-sub { font-size: 12px; color: var(--t3); }
+
+/* ═══════════════════════════════════════════════════════════
+   RISK PANEL
+═══════════════════════════════════════════════════════════ */
+.risk-panel {
+  background: var(--bg2);
+  border: 1px solid var(--bd2);
+  border-radius: var(--r);
+  padding: 22px;
+}
+
+.risk-top {
+  display: flex; align-items: baseline; gap: 14px;
+  margin-bottom: 16px;
+}
+
+.risk-number {
+  font-family: var(--mono);
+  font-size: 3.8rem; font-weight: 500;
+  line-height: 1;
+  color: var(--t1);
+  letter-spacing: -0.02em;
+}
+
+.risk-badge {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 9px;
+  border-radius: 3px;
+}
+.badge-low  { color:var(--green); background:var(--green-bg); border:1px solid var(--green-bd); }
+.badge-med  { color:var(--amber); background:var(--amber-bg); border:1px solid var(--amber-bd); }
+.badge-high { color:var(--red);   background:var(--red-bg);   border:1px solid var(--red-bd);   }
+
+/* Zone bar */
+.risk-zone-bar { position: relative; margin-bottom: 6px; }
+
+.zone-track {
+  height: 4px;
+  border-radius: 3px;
+  background: linear-gradient(to right,
+    var(--green) 0%,   var(--green) 40%,
+    var(--amber) 40%,  var(--amber) 70%,
+    var(--red)   70%,  var(--red)   100%
+  );
+  opacity: 0.20;
+}
+
+.zone-marker {
+  position: absolute; top: -5px;
+  width: 3px; height: 14px;
+  background: var(--t1);
+  border-radius: 2px;
+  transform: translateX(-50%);
+  transition: left 0.55s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 8px rgba(220,228,240,0.35);
+}
+
+.zone-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 7px;
+}
+.zone-labels span {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--t3);
+  letter-spacing: 0.06em;
+}
+
+.risk-desc {
+  font-size: 12px;
+  color: var(--t2);
+  line-height: 1.70;
+  padding-top: 14px;
+  border-top: 1px solid var(--bd);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REGION PROFILE
+═══════════════════════════════════════════════════════════ */
+.region-card {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 18px 20px;
+}
+
+.r-stat {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bd);
+  font-size: 12px;
+  gap: 12px;
+}
+.r-stat:last-of-type { border-bottom: none; }
+.r-stat-k { color: var(--t3); white-space: nowrap; }
+.r-stat-v {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--t1);
+  text-align: right;
+}
+
+.region-note {
+  font-size: 12px;
+  color: var(--t2);
+  line-height: 1.70;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--bd);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════════════════ */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.chart-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 18px 16px 10px;
+}
+
+.chart-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--t3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 195px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FACTOR CARDS
+═══════════════════════════════════════════════════════════ */
+.factors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.factor-card {
+  background: var(--bg2);
+  border: 1px solid var(--bd);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+.factor-top {
+  display: flex; align-items: center; gap: 9px;
+  margin-bottom: 9px;
+}
+.factor-ico { font-size: 13px; color: var(--t3); width: 15px; text-align: center; flex-shrink: 0; }
+.factor-name { font-size: 12px; font-weight: 500; color: var(--t1); flex: 1; line-height: 1.3; }
+.factor-pts { font-family: var(--mono); font-size: 11px; color: var(--t3); white-space: nowrap; }
+
+.factor-track {
+  height: 2px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 1px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.factor-fill {
+  height: 100%;
+  background: var(--blue);
+  opacity: 0.65;
+  border-radius: 1px;
+  transition: width 0.45s ease;
+}
+
+.factor-text { font-size: 12px; color: var(--t2); line-height: 1.65; }
+
+/* ═══════════════════════════════════════════════════════════
+   DATA TRANSPARENCY
+═══════════════════════════════════════════════════════════ */
+.trans-section {
+  border-top: 1px solid var(--bd);
+  padding-top: 28px;
+}
+
+.trans-note {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.72;
+  margin-bottom: 20px;
+  max-width: 660px;
+}
+
+.trans-table-wrap { overflow-x: auto; }
+
+.trans-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.trans-table td { padding: 8px 14px; vertical-align: top; }
+.td-k { color: var(--t2); font-weight: 500; white-space: nowrap; }
+.td-v { font-family: var(--mono); color: var(--t1); font-size: 11px; }
+.td-n { color: var(--t3); font-size: 11px; font-style: italic; }
+.tr-even { background: var(--bg1); }
+.tr-odd  { background: var(--bg2); }
+.tr-div td { padding: 0; height: 1px; background: var(--bd2); }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════ */
+@media (max-width: 1100px) {
+  .d-body { grid-template-columns: 1fr; }
+  .d-sidebar { min-height: auto; border-right: none; border-bottom: 1px solid var(--bd); }
+  .factors-grid { grid-template-columns: 1fr; }
+  .charts-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 720px) {
+  .l-header, .l-footer { padding: 14px 20px; }
+  .l-hero { padding: 40px 20px; }
+  .l-hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .l-hero-left h1 { font-size: 2.2rem; }
+  .l-hero-right { padding-left: 0; border-left: none; border-top: 1px solid var(--bd); padding-top: 28px; }
+  .l-header-meta { display: none; }
+  .d-nav, .d-controls { padding: 12px 18px; }
+  .d-content, .d-sidebar { padding: 20px 18px; }
+  .d-nav-title { display: none; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════════════════════════════════════ -->
+<section id="pg-landing">
+
+  <header class="l-header">
+    <div class="l-logo">
+      <div class="l-logo-mark"></div>
+      <span class="l-logo-name">Silent Disaster</span>
+    </div>
+    <span class="l-header-meta">Flood Risk &nbsp;·&nbsp; Early Signal System &nbsp;·&nbsp; India &nbsp;v1.0</span>
+  </header>
+
+  <div class="l-hero">
+    <div class="l-hero-grid">
+
+      <div class="l-hero-left">
+        <h1>Risk awareness<br>before a disaster<br><em>becomes one.</em></h1>
+        <p class="l-tagline">
+          A transparent, rule-based environmental monitoring system that surfaces
+          early flood risk signals for Indian regions — before conditions become
+          visible as damage.
+        </p>
+        <button class="btn-enter" onclick="showDash()">Open Risk Dashboard &rarr;</button>
+      </div>
+
+      <div class="l-hero-right">
+        <div class="ctx-block">
+          <div class="ctx-label">Why this matters</div>
+          <p>Most flood-related decisions happen after conditions are already critical. Drainage fails, evacuation routes submerge, and emergency resources are deployed reactively. This system is designed to shift that window earlier — not to predict, but to flag when environmental signals are trending toward risk.</p>
+        </div>
+        <div class="ctx-block">
+          <div class="ctx-label">What this is not</div>
+          <p>This is not machine learning. There is no black box. Every score is produced by transparent, auditable rules based on rainfall trends, cumulative volume, historical sensitivity, and temperature interaction. The full logic is readable in the Data Transparency panel.</p>
+        </div>
+        <div class="ctx-block">
+          <div class="ctx-label">Regions covered</div>
+          <p>Eight Indian cities with distinct flood risk profiles — from the Brahmaputra basin in Assam to the semi-arid plateau of Rajasthan. Each region is assessed over a 7-day or 14-day environmental observation window.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="l-footer">
+    <span>Environmental data: simulated from historical IMD patterns</span>
+    <span>Risk classification: deterministic · rule-based · no ML</span>
+  </footer>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════════════════════════════════ -->
+<section id="pg-dash">
+
+  <nav class="d-nav">
+    <div class="d-nav-left">
+      <div class="d-live">
+        <span class="d-live-dot"></span>
+        <span>Monitoring</span>
+      </div>
+      <span class="d-nav-title">Silent Disaster &nbsp;·&nbsp; Flood Risk Dashboard</span>
+    </div>
+    <div class="d-nav-right">
+      <span class="d-ts" id="d-ts">—</span>
+      <button class="btn-back" onclick="showLanding()">&larr; Overview</button>
+    </div>
+  </nav>
+
+  <div class="d-controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Region</span>
+      <select id="region-select"></select>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Window</span>
+      <button class="win-btn active" data-days="7">Last 7 Days</button>
+      <button class="win-btn" data-days="14">Last 14 Days</button>
+    </div>
+  </div>
+
+  <div class="d-body">
+
+    <!-- Sidebar -->
+    <aside class="d-sidebar">
+
+      <div>
+        <div class="sec-head"><div class="sec-title">Risk Assessment</div></div>
+        <div class="risk-panel">
+          <div class="risk-top">
+            <span class="risk-number" id="r-score">—</span>
+            <span class="risk-badge" id="r-badge">—</span>
+          </div>
+          <div class="risk-zone-bar">
+            <div class="zone-track"></div>
+            <div class="zone-marker" id="r-marker" style="left:0%"></div>
+          </div>
+          <div class="zone-labels">
+            <span>LOW &nbsp;0–40</span>
+            <span>MED &nbsp;41–70</span>
+            <span>HIGH &nbsp;71–100</span>
+          </div>
+          <p class="risk-desc" id="r-desc">Initialising…</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-head"><div class="sec-title">Region Profile</div></div>
+        <div class="region-card">
+          <div class="r-stat"><span class="r-stat-k">Avg Annual Rainfall</span><span class="r-stat-v" id="rp-rain">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Historical Sensitivity</span><span class="r-stat-v" id="rp-sens">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Drainage Capacity</span><span class="r-stat-v" id="rp-drain">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">River Proximity</span><span class="r-stat-v" id="rp-river">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Past Flood Years</span><span class="r-stat-v" id="rp-years">—</span></div>
+          <p class="region-note" id="rp-note">—</p>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main content -->
+    <main class="d-content">
+
+      <div>
+        <div class="sec-head">
+          <div class="sec-title">Environmental Trends</div>
+          <div class="sec-sub">Daily observations over the selected window</div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-wrap">
+            <div class="chart-label">Rainfall &nbsp;· &nbsp;mm / day</div>
+            <canvas id="chart-rain"></canvas>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-label">Temperature &nbsp;·&nbsp; °C</div>
+            <canvas id="chart-temp"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec-head">
+          <div class="sec-title">Risk Factor Analysis</div>
+          <div class="sec-sub">Each factor scored independently — sorted by contribution</div>
+        </div>
+        <div class="factors-grid" id="factors-grid"></div>
+      </div>
+
+      <div class="trans-section">
+        <div class="sec-head"><div class="sec-title">Data Transparency</div></div>
+        <p class="trans-note">
+          Every value used in this assessment is listed below — raw environmental measurements,
+          derived statistics, and individual factor scores. The classification is fully deterministic:
+          identical inputs always produce identical output. Nothing is approximated or hidden.
+        </p>
+        <div class="trans-table-wrap">
+          <table class="trans-table"><tbody id="trans-tbody"></tbody></table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     JAVASCRIPT — Data · Risk Engine · Charts · UI · Init
+════════════════════════════════════════════════════════════════════ -->
+<script>
+
+/* ─── INLINED DATA ───────────────────────────────────────────────────────────
+   All environmental and historical data is here.
+   No server, no fetch(), no CORS issues. Works on GitHub Pages as-is.
+─────────────────────────────────────────────────────────────────────────── */
+
+const RAINFALL = { regions: {
+  Mumbai:      { label:"Mumbai, Maharashtra",   d14:[4.2,6.8,9.1,18.4,22.0,35.6,41.2,38.9,52.3,67.8,74.1,81.5,78.3,92.6], d7:[38.9,52.3,67.8,74.1,81.5,78.3,92.6] },
+  Chennai:     { label:"Chennai, Tamil Nadu",   d14:[0.0,0.0,2.1,1.4,3.8,5.2,4.0,6.7,8.9,11.3,9.5,14.2,18.8,22.1],        d7:[6.7,8.9,11.3,9.5,14.2,18.8,22.1]  },
+  Patna:       { label:"Patna, Bihar",          d14:[12.3,15.6,18.9,22.4,28.1,31.5,27.8,33.2,41.6,55.9,63.4,72.1,68.5,85.3], d7:[33.2,41.6,55.9,63.4,72.1,68.5,85.3] },
+  Guwahati:    { label:"Guwahati, Assam",       d14:[18.5,24.3,31.2,28.6,35.8,42.1,38.7,46.3,52.8,61.4,58.9,71.2,76.8,88.4], d7:[46.3,52.8,61.4,58.9,71.2,76.8,88.4] },
+  Hyderabad:   { label:"Hyderabad, Telangana",  d14:[0.0,1.2,0.5,3.4,2.1,4.8,3.2,5.6,7.8,6.4,9.1,8.3,11.5,13.2],           d7:[5.6,7.8,6.4,9.1,8.3,11.5,13.2]  },
+  Kolkata:     { label:"Kolkata, West Bengal",  d14:[8.4,11.2,14.7,19.3,23.6,31.2,29.8,38.4,44.7,51.3,58.9,63.2,71.5,79.8], d7:[38.4,44.7,51.3,58.9,63.2,71.5,79.8] },
+  Jaipur:      { label:"Jaipur, Rajasthan",     d14:[0.0,0.0,0.0,1.2,0.8,2.4,1.9,3.1,2.7,4.5,3.8,5.2,4.9,6.3],             d7:[3.1,2.7,4.5,3.8,5.2,4.9,6.3]   },
+  Bhubaneswar: { label:"Bhubaneswar, Odisha",   d14:[9.2,13.4,17.8,24.5,29.3,36.7,33.1,42.8,49.6,58.3,64.7,71.9,80.2,91.5], d7:[42.8,49.6,58.3,64.7,71.9,80.2,91.5] }
+}};
+
+const TEMPERATURE = { regions: {
+  Mumbai:      { d14:[29.4,30.1,29.8,30.5,31.2,30.8,29.6,29.2,28.8,28.4,28.1,27.9,27.6,27.3], d7:[29.2,28.8,28.4,28.1,27.9,27.6,27.3] },
+  Chennai:     { d14:[32.1,33.4,34.2,33.8,34.5,35.1,34.9,35.6,36.2,35.8,36.4,37.1,36.8,37.4], d7:[35.6,36.2,35.8,36.4,37.1,36.8,37.4] },
+  Patna:       { d14:[33.2,34.1,34.8,35.3,34.7,33.9,34.2,33.6,32.8,32.1,31.5,31.2,30.8,30.4], d7:[33.6,32.8,32.1,31.5,31.2,30.8,30.4] },
+  Guwahati:    { d14:[30.5,31.2,30.8,31.4,30.9,30.2,29.8,29.4,28.9,28.5,28.2,27.8,27.5,27.1], d7:[29.4,28.9,28.5,28.2,27.8,27.5,27.1] },
+  Hyderabad:   { d14:[35.8,36.4,37.1,36.8,37.5,38.2,37.9,38.6,39.1,38.8,39.4,40.1,39.7,40.3], d7:[38.6,39.1,38.8,39.4,40.1,39.7,40.3] },
+  Kolkata:     { d14:[31.4,32.1,32.8,33.2,32.7,32.1,31.6,31.2,30.8,30.4,30.1,29.8,29.5,29.2], d7:[31.2,30.8,30.4,30.1,29.8,29.5,29.2] },
+  Jaipur:      { d14:[38.4,39.1,39.8,40.3,41.2,40.8,41.5,42.1,41.8,42.4,43.1,42.7,43.4,44.1], d7:[42.1,41.8,42.4,43.1,42.7,43.4,44.1] },
+  Bhubaneswar: { d14:[32.8,33.4,34.1,33.7,34.4,33.9,33.2,32.6,32.1,31.8,31.4,31.1,30.8,30.5], d7:[32.6,32.1,31.8,31.4,31.1,30.8,30.5] }
+}};
+
+const HISTORY = { regions: {
+  Mumbai: {
+    label:"Mumbai, Maharashtra", sensitivity:78,
+    flood_years:[2005,2017,2019,2020,2021], avg_rain_mm:2167,
+    drainage:"Low", river_prox:"High", soil:"Clay-dominant, low permeability",
+    note:"The 2005 deluge (944 mm in 24 h) set the benchmark for infrastructure failure in this city. Drainage capacity is structurally insufficient for peak monsoon surge events. Low-elevation neighbourhoods near the Mithi River flood even with moderate sustained rainfall."
+  },
+  Chennai: {
+    label:"Chennai, Tamil Nadu", sensitivity:71,
+    flood_years:[2005,2010,2015,2021], avg_rain_mm:1400,
+    drainage:"Medium-Low", river_prox:"High", soil:"Sandy loam with clay patches",
+    note:"The 2015 floods submerged residential and industrial zones across the city. The Adyar and Cooum rivers overflow frequently during the northeast monsoon. Encroachment on natural water bodies has significantly reduced absorption capacity over the past two decades."
+  },
+  Patna: {
+    label:"Patna, Bihar", sensitivity:85,
+    flood_years:[2007,2008,2013,2016,2019,2020], avg_rain_mm:1020,
+    drainage:"Low", river_prox:"Very High", soil:"Deep alluvial, high water retention",
+    note:"Patna sits on the Ganges floodplain and is structurally one of India's most flood-exposed urban centres. Seasonal flooding is near-certain; severity varies. The 2019 event submerged large parts of the city from combined river overflow and local drainage failure."
+  },
+  Guwahati: {
+    label:"Guwahati, Assam", sensitivity:88,
+    flood_years:[2012,2015,2017,2019,2020,2022], avg_rain_mm:1600,
+    drainage:"Very Low", river_prox:"Very High", soil:"Alluvial and laterite mix",
+    note:"Guwahati faces compound flooding from both the Brahmaputra and urban runoff. The river's rising sediment bed makes overbank events increasingly common. Hilly urban fringes generate rapid runoff that the city's drainage cannot absorb during heavy monsoon spells."
+  },
+  Hyderabad: {
+    label:"Hyderabad, Telangana", sensitivity:52,
+    flood_years:[2000,2016,2020], avg_rain_mm:812,
+    drainage:"Medium", river_prox:"Medium", soil:"Black cotton soil, poor drainage when saturated",
+    note:"Hyderabad historically relied on a network of tanks for water management. Encroachment on these structures has redirected flooding into residential areas during heavy events. The 2020 floods caused significant damage in low-lying zones near the Musi River."
+  },
+  Kolkata: {
+    label:"Kolkata, West Bengal", sensitivity:80,
+    flood_years:[2000,2007,2015,2017,2021], avg_rain_mm:1582,
+    drainage:"Low", river_prox:"High", soil:"Deep alluvial, high water table",
+    note:"Kolkata's position on the Hooghly river delta makes it structurally exposed to flooding. Tidal backflow during monsoon inhibits gravity drainage. The eastern wetlands that historically buffered floods have been steadily converted to built-up land."
+  },
+  Jaipur: {
+    label:"Jaipur, Rajasthan", sensitivity:31,
+    flood_years:[2006,2014], avg_rain_mm:590,
+    drainage:"Medium", river_prox:"Low", soil:"Sandy, fast draining",
+    note:"Jaipur has limited flood history due to low annual rainfall and fast-draining sandy soil. Occasional extreme events cause localised urban flooding due to poor stormwater infrastructure. Risk is most acute when rare high-intensity rainfall hits heat-parched ground."
+  },
+  Bhubaneswar: {
+    label:"Bhubaneswar, Odisha", sensitivity:82,
+    flood_years:[2006,2008,2011,2013,2018,2020], avg_rain_mm:1496,
+    drainage:"Low-Medium", river_prox:"High", soil:"Red laterite with clay pockets",
+    note:"Odisha is among India's most cyclone-exposed states. Bhubaneswar faces compound risk: pre-cyclone rainfall saturates soil, then cyclone-associated surge causes river overflow. The Mahanadi basin drains into this region under high-load conditions, amplifying risk rapidly."
+  }
+}};
+
+
+/* ─── RISK ENGINE ────────────────────────────────────────────────────────────
+   Pure, rule-based scoring. No ML. No hidden weights.
+   Each of the four factors is independently computed and documented.
+   Max total: 100 pts. Same inputs → same output, always.
+─────────────────────────────────────────────────────────────────────────── */
+const RiskEngine = (() => {
+
+  // Factor 1 — Rainfall Acceleration (0–40 pts)
+  // Is rainfall increasing rapidly? Compares first-half average to second-half average.
+  // A sharp increase signals drainage is approaching stress and soil saturation is accelerating.
+  function fAcceleration(rain) {
+    const n = rain.length, mid = Math.floor(n / 2);
+    const early  = rain.slice(0, mid).reduce((a,b)=>a+b,0) / mid;
+    const recent = rain.slice(mid).reduce((a,b)=>a+b,0) / (n - mid);
+    const pct    = early > 0 ? ((recent - early) / early) * 100 : (recent > 0 ? 100 : 0);
+
+    let score, detail;
+    if      (pct >= 150) { score=40; detail=`Rainfall has accelerated sharply — recent daily average (${recent.toFixed(1)} mm) is more than 2.5× the earlier average (${early.toFixed(1)} mm). Rapid accumulation of this magnitude is a strong precursor to drainage stress and potential flooding.`; }
+    else if (pct >= 80)  { score=28; detail=`Rainfall is rising at a notable rate. Recent average (${recent.toFixed(1)} mm/day) is ~${Math.round(pct)}% above the earlier window average (${early.toFixed(1)} mm/day). Drainage systems may be approaching capacity.`; }
+    else if (pct >= 30)  { score=15; detail=`A moderate upward trend in rainfall is present. Recent daily average: ${recent.toFixed(1)} mm vs. earlier: ${early.toFixed(1)} mm. The situation warrants monitoring over the next 48 hours.`; }
+    else if (pct > 0)    { score=6;  detail=`Rainfall is marginally higher recently (${recent.toFixed(1)} mm/day) versus earlier (${early.toFixed(1)} mm/day). The increase is not alarming at current rates.`; }
+    else                 { score=0;  detail=`Rainfall is stable or declining over this window — ${recent.toFixed(1)} mm/day recently versus ${early.toFixed(1)} mm/day earlier. No acceleration signal present.`; }
+
+    return { score, max:40, detail, label:"Rainfall Acceleration", ico:"↑", early, recent, pct };
+  }
+
+  // Factor 2 — Recent Rainfall Volume (0–30 pts)
+  // What is the trailing 3-day average? High sustained volume saturates soil
+  // and overwhelms drainage regardless of whether it is increasing or flat.
+  function fVolume(rain) {
+    const r3 = rain.slice(-3).reduce((a,b)=>a+b,0) / 3;
+
+    let score, detail;
+    if      (r3 >= 70) { score=30; detail=`3-day trailing average is ${r3.toFixed(1)} mm/day — a high-volume event. At this intensity, surface water accumulation begins even in areas with adequate drainage infrastructure.`; }
+    else if (r3 >= 40) { score=20; detail=`Recent 3-day average of ${r3.toFixed(1)} mm/day indicates heavy sustained rainfall. Drainage systems are likely approaching or exceeding their design capacity.`; }
+    else if (r3 >= 20) { score=10; detail=`Moderate sustained rainfall averaging ${r3.toFixed(1)} mm/day over the recent period. Soil saturation is underway in low-permeability areas.`; }
+    else if (r3 >= 8)  { score=4;  detail=`Light to moderate rainfall (${r3.toFixed(1)} mm/day). Drainage stress is minimal at current intensity.`; }
+    else               { score=0;  detail=`Recent rainfall is low (${r3.toFixed(1)} mm/day). No meaningful drainage stress at present.`; }
+
+    return { score, max:30, detail, label:"Recent Rainfall Volume", ico:"▪", r3 };
+  }
+
+  // Factor 3 — Historical Sensitivity (0–20 pts)
+  // How structurally flood-prone is this region?
+  // Combines terrain, drainage capacity, river proximity, soil type, and past event frequency.
+  function fHistory(sensitivity) {
+    const score = Math.round((sensitivity / 100) * 20);
+
+    let detail;
+    if      (sensitivity >= 80) { detail=`Very high historical sensitivity (${sensitivity}/100). This region sits in a structurally vulnerable zone — elevated river proximity, poor drainage capacity, and multiple recorded flood events indicate a low threshold for inundation.`; }
+    else if (sensitivity >= 60) { detail=`Moderate-to-high historical sensitivity (${sensitivity}/100). Past flood events and terrain characteristics place this region above the baseline risk of inland or well-drained locations.`; }
+    else if (sensitivity >= 40) { detail=`Moderate historical sensitivity (${sensitivity}/100). Some structural exposure exists, but the region is not in a high-recurrence flood zone.`; }
+    else                        { detail=`Low historical sensitivity (${sensitivity}/100). This region has limited flood history and relatively favourable terrain and drainage conditions.`; }
+
+    return { score, max:20, detail, label:"Historical Sensitivity", ico:"◎" };
+  }
+
+  // Factor 4 — Heat–Rain Interaction (0–10 pts)
+  // Prolonged high temperatures harden surface soil (hydrophobic effect),
+  // significantly increasing runoff when heavy rain eventually arrives.
+  function fHeatRain(temp, rain) {
+    const t3 = temp.slice(-3).reduce((a,b)=>a+b,0) / 3;
+    const r3 = rain.slice(-3).reduce((a,b)=>a+b,0) / 3;
+    const hot = t3 >= 36, heavy = r3 >= 30, mod = r3 >= 15;
+
+    let score, detail;
+    if (hot && heavy)   { score=10; detail=`High average temperature (${t3.toFixed(1)}°C) combined with heavy rainfall (${r3.toFixed(1)} mm/day). Heat-parched soil has reduced infiltration capacity, significantly increasing the volume of surface runoff generated.`; }
+    else if (hot && mod){ score=5;  detail=`Elevated temperatures (${t3.toFixed(1)}°C) with moderate recent rainfall (${r3.toFixed(1)} mm/day). Soil infiltration may be partially compromised, contributing modestly to runoff generation.`; }
+    else                { score=0;  detail=`Temperature–rainfall interaction is not a significant risk factor at present (avg temp: ${t3.toFixed(1)}°C, avg rain: ${r3.toFixed(1)} mm/day). Standard infiltration conditions assumed.`; }
+
+    return { score, max:10, detail, label:"Heat–Rain Interaction", ico:"◈", t3, r3 };
+  }
+
+  // Master scoring function
+  function calculate(rain, temp, sensitivity) {
+    const factors = [
+      fAcceleration(rain),
+      fVolume(rain),
+      fHistory(sensitivity),
+      fHeatRain(temp, rain)
+    ];
+    const total = Math.min(100, factors.reduce((s,f)=>s+f.score, 0));
+
+    let level, desc;
+    if      (total >= 71) { level='High';   desc="Environmental conditions indicate elevated flood likelihood if rainfall continues at current rates. Decision-makers should consider activating preparedness protocols and reviewing local drainage status."; }
+    else if (total >= 41) { level='Medium'; desc="Conditions are trending toward elevated risk. No immediate action required, but close monitoring over the next 48–72 hours is advised. Preparedness measures should be reviewed."; }
+    else                  { level='Low';    desc="Current conditions do not indicate a near-term flood threat. Baseline preparedness protocols are sufficient. Continue routine monitoring."; }
+
+    return { total, level, desc, factors };
+  }
+
+  return { calculate };
+})();
+
+
+/* ─── STATE ───────────────────────────────────────────────────────────────── */
+const state = { region: 'Mumbai', days: 7 };
+
+
+/* ─── CHART ENGINE ───────────────────────────────────────────────────────────
+   Canvas-based charts. No external libraries.
+   DPI-aware: crisp on retina/high-DPI displays.
+   Filled area for rainfall (shows accumulation), line-only for temperature.
+─────────────────────────────────────────────────────────────────────────── */
+function drawChart(id, data, labels, color, filled) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return;
+
+  const dpr  = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth;
+  const cssH = canvas.clientHeight || 195;
+  canvas.width  = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const W = cssW, H = cssH;
+  const pad = { top:24, right:18, bottom:40, left:48 };
+  const cW  = W - pad.left - pad.right;
+  const cH  = H - pad.top  - pad.bottom;
+  const n   = data.length;
+
+  const yMax = (Math.max(...data) * 1.18) || 10;
+  const yMin = filled ? 0 : Math.max(0, Math.min(...data) - 2);
+
+  const xp = i => pad.left + (i / (n - 1)) * cW;
+  const yp = v => pad.top  + cH - ((v - yMin) / (yMax - yMin)) * cH;
+
+  // Horizontal grid lines + Y-axis labels
+  const ticks = 4;
+  for (let i = 0; i <= ticks; i++) {
+    const y   = pad.top + (i / ticks) * cH;
+    const val = yMax - (i / ticks) * (yMax - yMin);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    ctx.fillStyle = 'rgba(138,150,170,0.55)';
+    ctx.font = `10px 'IBM Plex Mono', monospace`;
+    ctx.textAlign = 'right';
+    ctx.fillText(val.toFixed(val < 10 ? 1 : 0), pad.left - 6, y + 4);
+  }
+
+  // X-axis date labels — show every nth to avoid crowding
+  const step = Math.max(1, Math.ceil(n / 6));
+  ctx.fillStyle = 'rgba(138,150,170,0.55)';
+  ctx.font = `10px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = 'center';
+  labels.forEach((lbl, i) => {
+    if (i % step === 0 || i === n - 1) ctx.fillText(lbl, xp(i), H - 6);
+  });
+
+  if (n < 2) return;
+
+  // Gradient fill for rainfall chart
+  if (filled) {
+    const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+    grad.addColorStop(0, color + '2e');
+    grad.addColorStop(1, color + '00');
+    ctx.beginPath();
+    ctx.moveTo(xp(0), yp(data[0]));
+    for (let i = 1; i < n; i++) ctx.lineTo(xp(i), yp(data[i]));
+    ctx.lineTo(xp(n-1), pad.top + cH);
+    ctx.lineTo(xp(0),   pad.top + cH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+
+  // Data line
+  ctx.beginPath();
+  ctx.moveTo(xp(0), yp(data[0]));
+  for (let i = 1; i < n; i++) ctx.lineTo(xp(i), yp(data[i]));
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.8;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Data point dots
+  for (let i = 0; i < n; i++) {
+    ctx.beginPath();
+    ctx.arc(xp(i), yp(data[i]), 3.0, 0, Math.PI * 2);
+    ctx.fillStyle   = color;
+    ctx.fill();
+    ctx.strokeStyle = '#0c1018';
+    ctx.lineWidth   = 1.5;
+    ctx.stroke();
+  }
+}
+
+function getDayLabels(n) {
+  const today = new Date(), out = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    out.push(d.toLocaleDateString('en-IN', { day:'numeric', month:'short' }));
+  }
+  return out;
+}
+
+
+/* ─── UI RENDERERS ───────────────────────────────────────────────────────────
+   Each function updates a specific section of the dashboard.
+   None of these touch the risk engine — they only present its output.
+─────────────────────────────────────────────────────────────────────────── */
+
+function renderRisk(risk) {
+  document.getElementById('r-score').textContent = risk.total;
+  const badge = document.getElementById('r-badge');
+  badge.textContent = risk.level + ' Risk';
+  badge.className   = 'risk-badge ' + {Low:'badge-low', Medium:'badge-med', High:'badge-high'}[risk.level];
+  document.getElementById('r-marker').style.left = risk.total + '%';
+  document.getElementById('r-desc').textContent  = risk.desc;
+}
+
+function renderFactors(factors) {
+  document.getElementById('factors-grid').innerHTML = factors
+    .slice().sort((a,b) => b.score - a.score)
+    .map(f => `
+      <div class="factor-card">
+        <div class="factor-top">
+          <span class="factor-ico">${f.ico}</span>
+          <span class="factor-name">${f.label}</span>
+          <span class="factor-pts">${f.score}&thinsp;/&thinsp;${f.max}</span>
+        </div>
+        <div class="factor-track">
+          <div class="factor-fill" style="width:${(f.score/f.max)*100}%"></div>
+        </div>
+        <p class="factor-text">${f.detail}</p>
+      </div>`).join('');
+}
+
+function renderTransparency(rain, temp, hist, risk) {
+  const avg3 = arr => (arr.slice(-3).reduce((a,b)=>a+b,0)/3).toFixed(1);
+  const mid  = Math.floor(rain.length / 2);
+  const earlyAvg = (rain.slice(0, mid).reduce((a,b)=>a+b,0) / mid).toFixed(1);
+  const f = risk.factors;
+
+  const rows = [
+    ['Region',                   hist.label,                               '—'],
+    ['Analysis window',          state.days + ' days',                     '—'],
+    ['Peak single-day rainfall', Math.max(...rain).toFixed(1) + ' mm',     'Highest value in window'],
+    ['3-day trailing rain avg',  avg3(rain) + ' mm/day',                   'Days –3 to present'],
+    ['Early-window rain avg',    earlyAvg + ' mm/day',                     'First half of window'],
+    ['3-day trailing temp avg',  avg3(temp) + ' °C',                       'Days –3 to present'],
+    ['Historical sensitivity',   hist.sensitivity + ' / 100',              'From flood history records'],
+    ['Drainage capacity',        hist.drainage,                             'Terrain classification'],
+    ['River proximity',          hist.river_prox,                          'Terrain classification'],
+    ['Soil type',                hist.soil,                                 'Geological record'],
+    null,
+    ['Acceleration factor',      f[0].score + ' / 40 pts',                'Rule: rainfall trend, early → recent'],
+    ['Volume factor',            f[1].score + ' / 30 pts',                'Rule: 3-day trailing average'],
+    ['Historical factor',        f[2].score + ' / 20 pts',                'Rule: sensitivity score, weighted'],
+    ['Heat–rain factor',         f[3].score + ' / 10 pts',                'Rule: high temp + heavy rain'],
+    null,
+    ['Total risk score',         risk.total + ' / 100',                   'Sum of all four factors'],
+    ['Classification',           risk.level + ' Risk',                    '0–40 Low · 41–70 Medium · 71–100 High'],
+  ];
+
+  document.getElementById('trans-tbody').innerHTML = rows.map((r, i) => {
+    if (!r) return `<tr class="tr-div"><td colspan="3"></td></tr>`;
+    const c = i % 2 === 0 ? 'tr-even' : 'tr-odd';
+    return `<tr class="${c}"><td class="td-k">${r[0]}</td><td class="td-v">${r[1]}</td><td class="td-n">${r[2]}</td></tr>`;
+  }).join('');
+}
+
+function renderProfile(hist) {
+  document.getElementById('rp-rain').textContent  = hist.avg_rain_mm + ' mm';
+  document.getElementById('rp-sens').textContent  = hist.sensitivity + ' / 100';
+  document.getElementById('rp-drain').textContent = hist.drainage;
+  document.getElementById('rp-river').textContent = hist.river_prox;
+  document.getElementById('rp-years').textContent = hist.flood_years.join(', ');
+  document.getElementById('rp-note').textContent  = hist.note;
+}
+
+
+/* ─── CONTROLLER ─────────────────────────────────────────────────────────────
+   Pulls the right data slice, runs the engine, and fires all renderers.
+─────────────────────────────────────────────────────────────────────────── */
+function update() {
+  const key  = state.days === 7 ? 'd7' : 'd14';
+  const rain = RAINFALL.regions[state.region][key];
+  const temp = TEMPERATURE.regions[state.region][key];
+  const hist = HISTORY.regions[state.region];
+  const risk = RiskEngine.calculate(rain, temp, hist.sensitivity);
+  const lbl  = getDayLabels(state.days);
+
+  renderRisk(risk);
+  renderFactors(risk.factors);
+  renderTransparency(rain, temp, hist, risk);
+  renderProfile(hist);
+
+  requestAnimationFrame(() => {
+    drawChart('chart-rain', rain, lbl, '#5b9cf6', true);
+    drawChart('chart-temp', temp, lbl, '#e8874e', false);
+  });
+}
+
+
+/* ─── NAVIGATION ─────────────────────────────────────────────────────────── */
+function showDash() {
+  document.getElementById('pg-landing').style.display = 'none';
+  document.getElementById('pg-dash').style.display    = 'block';
+  document.getElementById('d-ts').textContent = new Date().toLocaleString('en-IN', {
+    day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+  requestAnimationFrame(() => update());
+}
+
+function showLanding() {
+  document.getElementById('pg-dash').style.display    = 'none';
+  document.getElementById('pg-landing').style.display = 'flex';
+}
+
+
+/* ─── INIT ───────────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Populate region dropdown
+  const sel = document.getElementById('region-select');
+  Object.keys(RAINFALL.regions).forEach(k => {
+    const o = document.createElement('option');
+    o.value = k;
+    o.textContent = RAINFALL.regions[k].label;
+    if (k === state.region) o.selected = true;
+    sel.appendChild(o);
+  });
+
+  // Region change
+  sel.addEventListener('change', e => { state.region = e.target.value; update(); });
+
+  // Window toggle
+  document.querySelectorAll('.win-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.win-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.days = parseInt(btn.dataset.days);
+      update();
+    });
+  });
+
+  // Redraw charts on resize
+  let rt;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      if (document.getElementById('pg-dash').style.display !== 'none') {
+        const key  = state.days === 7 ? 'd7' : 'd14';
+        drawChart('chart-rain', RAINFALL.regions[state.region][key],    getDayLabels(state.days), '#5b9cf6', true);
+        drawChart('chart-temp', TEMPERATURE.regions[state.region][key], getDayLabels(state.days), '#e8874e', false);
+      }
+    }, 200);
+  });
+
+});
+
+</script>
+</body>
+</html>
+
+Written. Size: 50431 bytes, Lines: 1212
