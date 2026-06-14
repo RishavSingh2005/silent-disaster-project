@@ -1,286 +1,1545 @@
-'<!DOCTYPE html>
-<html lang=\"en\">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1.0\">
-<title>Silent Disaster v3 — Real-Time Flood Early Signal System</title>
-<link rel=\"icon\" href=\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%234d94ff' stroke-width='2.5'/><circle cx='16' cy='16' r='5' fill='%234d94ff' opacity='.7'/></svg>\">
-<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">
-<link href=\"https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&family=Lora:wght@500;600&display=swap\" rel=\"stylesheet\">
-<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet@1.9.4/dist/leaflet.css\"/>
-<script src=\"https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js\"></script>
-<script src=\"https://unpkg.com/leaflet@1.9.4/dist/leaflet.js\"></script>
-<script src=\"https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js\"></script>
-<script src=\"https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js\"></script>
-<script src=\"https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js\"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Silent Disaster — Real-time flood risk monitoring for all Indian cities using live weather data.">
+<title>Silent Disaster v2 — Real-Time Flood Early Signal System</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='13' fill='none' stroke='%234d94ff' stroke-width='2.5'/><circle cx='16' cy='16' r='5' fill='%234d94ff' opacity='0.7'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&family=Lora:wght@500;600&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg0:#070c14;--bg1:#0d1420;--bg2:#131d2e;--bg3:#1a253c;--bg4:#21304a;
-  --bd:rgba(255,255,255,.05);--bd2:rgba(255,255,255,.09);--bd3:rgba(255,255,255,.14);
-  --t1:#dce8ff;--t2:#8a9ab8;--t3:#46587a;
-  --blue:#4d94ff;--bdim:rgba(77,148,255,.12);--bglow:rgba(77,148,255,.22);
-  --orange:#e07a40;
-  --low:#35a86a;--low-bg:rgba(53,168,106,.10);--low-bd:rgba(53,168,106,.22);
-  --med:#c49030;--med-bg:rgba(196,144,48,.10);--med-bd:rgba(196,144,48,.22);
-  --high:#c44040;--high-bg:rgba(196,64,64,.10);--high-bd:rgba(196,64,64,.22);
-  --mono:\"IBM Plex Mono\",monospace;--sans:\"Inter\",system-ui,sans-serif;--serif:\"Lora\",Georgia,serif;
-  --r:4px;--sh:0 8px 32px rgba(0,0,0,.4)
+
+/* ═══════════════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg0: #080d16; --bg1: #0e1520; --bg2: #141d2e; --bg3: #1b2540; --bg4: #22304f;
+  --bd: rgba(255,255,255,0.05); --bd2: rgba(255,255,255,0.09); --bd3: rgba(255,255,255,0.14);
+  --t1: #dce8ff; --t2: #8a9ab8; --t3: #465872;
+  --blue: #4d94ff; --blue-dim: rgba(77,148,255,0.12); --blue-glow: rgba(77,148,255,0.25);
+  --orange: #e07a40;
+  --low: #35a86a; --low-bg: rgba(53,168,106,0.10); --low-bd: rgba(53,168,106,0.22);
+  --med: #c49030; --med-bg: rgba(196,144,48,0.10); --med-bd: rgba(196,144,48,0.22);
+  --high: #c44040; --high-bg: rgba(196,64,64,0.10); --high-bd: rgba(196,64,64,0.22);
+  --mono: 'IBM Plex Mono', monospace; --sans: 'Inter', system-ui, sans-serif; --serif: 'Lora', Georgia, serif;
+  --r: 4px; --shadow: 0 8px 32px rgba(0,0,0,0.4);
 }
-html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--bg0);color:var(--t1);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
-button{cursor:pointer}a{color:var(--blue);text-decoration:none}
-/* AUTH */
-#pg-auth{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 40%,rgba(77,148,255,.06),transparent 60%),var(--bg0);padding:24px;position:relative}
-#pg-auth::before{content:\"\";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(77,148,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(77,148,255,.02) 1px,transparent 1px);background-size:48px 48px}
-.auth-card{width:100%;max-width:430px;background:var(--bg2);border:1px solid var(--bd3);border-radius:8px;padding:40px 36px;box-shadow:var(--sh);position:relative;z-index:1}
-.auth-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px}
-.auth-logo-mark{width:34px;height:34px;border-radius:50%;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center}
-.auth-logo-mark::after{content:\"\";width:10px;height:10px;border-radius:50%;background:var(--blue);opacity:.65}
-.auth-logo-text{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.12em;text-transform:uppercase;line-height:1.5}
-.auth-logo-text small{display:block;font-size:9px;color:var(--t3);letter-spacing:.08em}
-.auth-tabs{display:flex;gap:2px;background:var(--bg1);padding:3px;border-radius:var(--r);margin-bottom:28px}
-.auth-tab{flex:1;padding:8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-align:center;background:none;border:none;color:var(--t3);border-radius:3px;transition:all .15s}
-.auth-tab.active{background:var(--bg4);color:var(--t1)}
-.auth-form{display:flex;flex-direction:column;gap:14px}
-.form-group{display:flex;flex-direction:column;gap:6px}
-.form-label{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.14em;text-transform:uppercase}
-.form-input{background:var(--bg1);border:1px solid var(--bd2);color:var(--t1);font-family:var(--sans);font-size:13px;padding:10px 14px;border-radius:var(--r);outline:none;transition:border .15s;width:100%}
-.form-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--bdim)}
-.form-input::placeholder{color:var(--t3)}
-.form-error{font-size:11px;color:var(--high);display:none;padding:4px 0}
-.form-error.show{display:block}
-.btn-auth{padding:12px;background:var(--blue);color:var(--bg0);font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.10em;text-transform:uppercase;border:none;border-radius:var(--r);transition:opacity .15s;margin-top:4px}
-.btn-auth:hover{opacity:.88}
-.btn-google{padding:10px;background:var(--bg3);border:1px solid var(--bd2);color:var(--t1);font-family:var(--sans);font-size:13px;border-radius:var(--r);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px}
-.btn-google:hover{border-color:var(--bd3)}
-.auth-or{display:flex;align-items:center;gap:12px;color:var(--t3);font-size:11px}
-.auth-or::before,.auth-or::after{content:\"\";flex:1;height:1px;background:var(--bd2)}
-.btn-guest{padding:10px;background:transparent;color:var(--t2);font-family:var(--mono);font-size:11px;letter-spacing:.08em;border:1px solid var(--bd2);border-radius:var(--r);transition:all .15s}
-.btn-guest:hover{border-color:var(--bglow);color:var(--t1)}
-.auth-footer{text-align:center;margin-top:20px;font-size:11px;color:var(--t3)}
-.setup-banner{background:var(--med-bg);border:1px solid var(--med-bd);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--med);margin-bottom:18px;line-height:1.6}
-.pwd-bar{height:3px;background:var(--bd2);border-radius:2px;margin-top:6px;overflow:hidden}
-.pwd-fill{height:100%;border-radius:2px;transition:width .3s,background .3s;width:0}
-/* LANDING */
-#pg-landing{display:none;flex-direction:column;min-height:100vh}
-.l-header{display:flex;align-items:center;justify-content:space-between;padding:18px 52px;border-bottom:1px solid var(--bd)}
-.l-logo{display:flex;align-items:center;gap:12px}
-.l-logo-mark{width:30px;height:30px;border-radius:50%;border:2px solid var(--blue);display:flex;align-items:center;justify-content:center}
-.l-logo-mark::after{content:\"\";width:9px;height:9px;border-radius:50%;background:var(--blue);opacity:.65}
-.l-logo-name{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.12em;text-transform:uppercase}
-.l-hdr-right{display:flex;align-items:center;gap:16px}
-.l-user-chip{display:flex;align-items:center;gap:7px;padding:5px 13px;background:var(--bg3);border:1px solid var(--bd2);border-radius:20px;font-size:12px;color:var(--t2)}
-.l-chip-dot{width:7px;height:7px;border-radius:50%;background:var(--low)}
-.l-hero{flex:1;display:flex;align-items:center;justify-content:center;padding:60px 52px;position:relative;overflow:hidden}
-.l-hero::before{content:\"\";position:absolute;inset:0;background-image:linear-gradient(rgba(77,148,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(77,148,255,.02) 1px,transparent 1px);background-size:54px 54px;pointer-events:none}
-.l-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;max-width:1100px;width:100%;align-items:center;position:relative}
-.l-grid h1{font-family:var(--serif);font-size:3rem;font-weight:600;line-height:1.14;letter-spacing:-.01em;margin-bottom:20px}
-.l-grid h1 em{font-style:normal;color:var(--blue)}
-.l-tagline{font-size:14px;color:var(--t2);line-height:1.78;margin-bottom:36px;max-width:440px}
-.btn-enter{display:inline-block;padding:12px 28px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);background:transparent;border:1px solid var(--blue);border-radius:var(--r);transition:all .15s}
-.btn-enter:hover{background:var(--blue);color:var(--bg0)}
-.l-stats{display:flex;gap:20px;margin-top:32px;flex-wrap:wrap}
-.l-stat{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 20px}
-.l-stat-n{font-family:var(--mono);font-size:1.8rem;color:var(--blue);font-weight:500}
-.l-stat-l{font-size:11px;color:var(--t3);margin-top:2px}
-.l-right{padding-left:44px;border-left:1px solid var(--bd2);display:flex;flex-direction:column;gap:28px}
-.ctx-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}
-.ctx-p{font-size:13px;color:var(--t2);line-height:1.72}
-.l-footer{display:flex;justify-content:space-between;align-items:center;padding:14px 52px;border-top:1px solid var(--bd);flex-wrap:wrap;gap:8px}
-.l-footer span{font-family:var(--mono);font-size:11px;color:var(--t3)}
-/* DASHBOARD */
-#pg-dash{display:none}
-.d-nav{position:sticky;top:0;z-index:200;background:var(--bg1);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:11px 32px}
-.d-nav-l{display:flex;align-items:center;gap:16px}
-.d-live{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--low);letter-spacing:.10em;text-transform:uppercase}
-.d-dot{width:6px;height:6px;background:var(--low);border-radius:50%;animation:blink 3s ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:.9}50%{opacity:.25}}
-.d-vsep{width:1px;height:18px;background:var(--bd2)}
-.d-nav-title{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.10em;text-transform:uppercase}
-.d-nav-r{display:flex;align-items:center;gap:12px}
-.d-ts{font-family:var(--mono);font-size:11px;color:var(--t3)}
-.d-uname{font-size:12px;color:var(--t2);padding:5px 12px;background:var(--bg3);border-radius:12px;border:1px solid var(--bd2)}
-.bell-wrap{position:relative}
-.btn-bell{background:none;border:none;color:var(--t2);font-size:18px;padding:4px;transition:color .15s;line-height:1}
-.btn-bell:hover{color:var(--t1)}
-.bell-badge{position:absolute;top:-2px;right:-4px;min-width:16px;height:16px;background:var(--high);color:#fff;font-family:var(--mono);font-size:9px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px}
-.btn-sm{font-family:var(--mono);font-size:10px;background:var(--bg3);border:1px solid var(--bd2);color:var(--t2);padding:5px 12px;border-radius:var(--r);letter-spacing:.06em;transition:all .12s}
-.btn-sm:hover{border-color:var(--blue);color:var(--blue)}
-.btn-sm.danger:hover{border-color:var(--high-bd);color:var(--high)}
-.d-controls{background:var(--bg1);border-bottom:1px solid var(--bd);padding:10px 32px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-.ctrl-grp{display:flex;align-items:center;gap:8px}
-.ctrl-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.14em;text-transform:uppercase;white-space:nowrap}
-#city-sel{background:var(--bg2);border:1px solid var(--bd2);color:var(--t1);font-family:var(--sans);font-size:13px;padding:7px 34px 7px 12px;border-radius:var(--r);outline:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a9ab8'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 11px center;min-width:240px;cursor:pointer}
-#city-sel:focus{border-color:var(--blue)}
-.win-btn{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:7px 14px;background:var(--bg2);border:1px solid var(--bd2);color:var(--t2);border-radius:var(--r);transition:all .12s}
-.win-btn:hover{border-color:var(--blue);color:var(--t1)}
-.win-btn.active{background:var(--blue);border-color:var(--blue);color:var(--bg0);font-weight:500}
-.src-tag{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:3px;letter-spacing:.06em}
-.src-live{color:var(--low);background:var(--low-bg);border:1px solid var(--low-bd)}
-.src-demo{color:var(--t3);background:var(--bg3);border:1px solid var(--bd2)}
-.src-load{color:var(--blue);background:var(--bdim);border:1px solid var(--bglow)}
-.d-body{display:grid;grid-template-columns:298px 1fr;min-height:calc(100vh - 108px)}
-.d-side{background:var(--bg1);border-right:1px solid var(--bd);padding:22px 18px;display:flex;flex-direction:column;gap:26px;overflow-y:auto}
-.d-main{padding:24px 30px;display:flex;flex-direction:column;gap:26px;overflow-y:auto}
-.sec-hd{margin-bottom:13px}
-.sec-t{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--t3);letter-spacing:.20em;text-transform:uppercase;margin-bottom:3px}
-.sec-s{font-size:12px;color:var(--t3)}
-/* RISK PANEL */
-.risk-box{background:var(--bg2);border:1px solid var(--bd2);border-radius:var(--r);padding:20px}
-.risk-row{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
-.risk-num{font-family:var(--mono);font-size:3.6rem;font-weight:500;line-height:1;color:var(--t1);letter-spacing:-.02em;transition:color .3s}
-.risk-bdg{font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:3px}
-.bdg-low{color:var(--low);background:var(--low-bg);border:1px solid var(--low-bd)}
-.bdg-med{color:var(--med);background:var(--med-bg);border:1px solid var(--med-bd)}
-.bdg-high{color:var(--high);background:var(--high-bg);border:1px solid var(--high-bd)}
-.zone-bar{position:relative;margin-bottom:6px}
-.zone-track{height:4px;border-radius:3px;background:linear-gradient(to right,var(--low) 0%,var(--low) 40%,var(--med) 40%,var(--med) 70%,var(--high) 70%,var(--high) 100%);opacity:.2}
-.zone-pin{position:absolute;top:-5px;width:3px;height:14px;background:var(--t1);border-radius:2px;transform:translateX(-50%);transition:left .55s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px rgba(220,232,255,.4)}
-.zone-lbls{display:flex;justify-content:space-between;margin-top:6px}
-.zone-lbls span{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.06em}
-.risk-desc{font-size:12px;color:var(--t2);line-height:1.68;padding-top:12px;border-top:1px solid var(--bd)}
-/* WATCHLIST */
-.watch-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
-.watch-empty{font-size:12px;color:var(--t3);text-align:center;padding:14px 0;line-height:1.6}
-.watch-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:12px;cursor:pointer}
-.watch-item:last-child{border-bottom:none}
-.watch-item:hover .wi-n{color:var(--blue)}
-.wi-n{color:var(--t1);transition:color .12s}
-.wi-s{color:var(--t3);font-size:11px}
-.wi-bdg{font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:2px 6px;border-radius:2px}
-.wi-rm{background:none;border:none;color:var(--t3);font-size:15px;padding:0;line-height:1;transition:color .12s;margin-left:8px}
-.wi-rm:hover{color:var(--high)}
-.btn-watch-add{display:flex;align-items:center;gap:6px;width:100%;background:var(--bg3);border:1px dashed var(--bd2);color:var(--t3);border-radius:var(--r);padding:8px;font-family:var(--mono);font-size:10px;letter-spacing:.06em;justify-content:center;margin-top:10px;transition:all .12s}
-.btn-watch-add:hover{border-color:var(--blue);color:var(--blue)}
-/* REGION PROFILE */
-.rp-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 17px}
-.rp-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--bd);font-size:12px;gap:10px}
-.rp-row:last-of-type{border-bottom:none}
-.rp-k{color:var(--t3);white-space:nowrap}
-.rp-v{font-family:var(--mono);font-size:11px;color:var(--t1);text-align:right;max-width:55%}
-.rp-note{font-size:12px;color:var(--t2);line-height:1.68;margin-top:12px;padding-top:12px;border-top:1px solid var(--bd)}
-/* CHARTS */
-.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.chart-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 14px 8px}
-.chart-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.chart-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.14em;text-transform:uppercase}
-.chart-stat{font-family:var(--mono);font-size:11px;color:var(--t2)}
-.chart-box canvas{height:185px!important;width:100%!important}
-.factor-chart-box{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px}
-.factor-chart-box canvas{height:140px!important;width:100%!important}
-/* MAP */
-.map-box{border-radius:var(--r);overflow:hidden;border:1px solid var(--bd)}
-#risk-map{height:340px}
-/* RANKINGS */
-.rank-wrap{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;max-height:400px;overflow-y:auto}
-.rank-hd{display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr;padding:9px 14px;background:var(--bg1);border-bottom:1px solid var(--bd);position:sticky;top:0}
-.rank-hd span{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase}
-.rank-row{display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr;padding:8px 14px;border-bottom:1px solid var(--bd);align-items:center;font-size:12px;cursor:pointer;transition:background .12s}
-.rank-row:last-child{border-bottom:none}
-.rank-row:hover{background:var(--bg3)}
-.rank-city{font-weight:500;color:var(--t1)}
-.rank-st{color:var(--t3);font-size:11px}
-.rank-sc{font-family:var(--mono);font-size:11px}
-.rank-bdg{display:inline-flex;font-family:var(--mono);font-size:9px;letter-spacing:.08em;padding:2px 7px;border-radius:2px;text-transform:uppercase}
-/* NOTIFICATIONS */
-.notif-ol{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
-.notif-ol.open{opacity:1;pointer-events:all}
-.notif-pan{position:fixed;top:0;right:0;bottom:0;width:350px;background:var(--bg1);border-left:1px solid var(--bd2);z-index:301;transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}
-.notif-pan.open{transform:translateX(0)}
-.notif-ph{display:flex;align-items:center;justify-content:space-between;padding:17px 18px;border-bottom:1px solid var(--bd)}
-.notif-pt{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.12em;text-transform:uppercase}
-.notif-pa{display:flex;align-items:center;gap:12px}
-.btn-mr{font-family:var(--mono);font-size:10px;color:var(--t3);background:none;border:none;letter-spacing:.06em;transition:color .12s}
-.btn-mr:hover{color:var(--blue)}
-.btn-xn{font-size:18px;color:var(--t3);background:none;border:none;line-height:1;transition:color .12s}
-.btn-xn:hover{color:var(--t1)}
-.notif-list{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:9px}
-.notif-empty{text-align:center;padding:36px 16px;font-size:13px;color:var(--t3);line-height:1.65}
-.notif-item{background:var(--bg2);border:1px solid var(--bd);border-left-width:3px;border-radius:var(--r);padding:13px}
-.notif-item.unread{background:var(--bg3)}
-.ni-high{border-left-color:var(--high)}.ni-med{border-left-color:var(--med)}.ni-low{border-left-color:var(--low)}
-.ni-top{display:flex;justify-content:space-between;margin-bottom:5px}
-.ni-city{font-size:13px;font-weight:500;color:var(--t1)}
-.ni-time{font-family:var(--mono);font-size:10px;color:var(--t3)}
-.ni-msg{font-size:12px;color:var(--t2);line-height:1.58}
-/* TRANSPARENCY */
-.trans-sec{border-top:1px solid var(--bd);padding-top:24px}
-.trans-note{font-size:13px;color:var(--t2);line-height:1.72;margin-bottom:16px;max-width:640px}
-.trans-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.trans-tbl td{padding:8px 13px;vertical-align:top}
-.td-k{color:var(--t2);font-weight:500;white-space:nowrap}
-.td-v{font-family:var(--mono);color:var(--t1);font-size:11px}
-.td-n{color:var(--t3);font-size:11px;font-style:italic}
-.tr-e{background:var(--bg1)}.tr-o{background:var(--bg2)}
-.tr-div td{padding:0;height:1px;background:var(--bd2)}
-/* ADMIN */
-#pg-admin{display:none;min-height:100vh}
-.adm-nav{background:var(--bg1);border-bottom:1px solid var(--bd);padding:12px 32px;display:flex;align-items:center;justify-content:space-between}
-.adm-nav-t{font-family:var(--mono);font-size:11px;color:var(--high);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
-.adm-body{padding:28px 36px;max-width:1300px;margin:0 auto}
-.adm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
-.adm-stat{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:18px 20px}
-.adm-stat-n{font-family:var(--mono);font-size:2rem;font-weight:500;color:var(--blue)}
-.adm-stat-l{font-size:11px;color:var(--t3);margin-top:4px}
-.adm-tables{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.adm-sec{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden}
-.adm-sec-hd{padding:12px 16px;background:var(--bg1);border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:.15em;text-transform:uppercase}
-.adm-tbl{width:100%;border-collapse:collapse;font-size:12px}
-.adm-tbl th{padding:8px 12px;text-align:left;background:var(--bg1);font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;font-weight:400;border-bottom:1px solid var(--bd)}
-.adm-tbl td{padding:9px 12px;border-bottom:1px solid var(--bd);color:var(--t2)}
-.adm-tbl tr:last-child td{border-bottom:none}
-.adm-tbl tr:hover td{background:var(--bg3)}
-.adm-empty{padding:24px;text-align:center;font-size:12px;color:var(--t3)}
-/* TOAST */
-#toast-ct{position:fixed;bottom:22px;right:22px;z-index:500;display:flex;flex-direction:column;gap:8px}
-.toast{padding:11px 17px;background:var(--bg3);border:1px solid var(--bd3);border-radius:var(--r);font-size:12px;color:var(--t1);box-shadow:var(--sh);animation:tUp .2s ease;max-width:300px}
-.toast-info{border-left:3px solid var(--blue)}.toast-ok{border-left:3px solid var(--low)}
-.toast-warn{border-left:3px solid var(--med)}.toast-err{border-left:3px solid var(--high)}
-@keyframes tUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-@keyframes tOut{from{opacity:1}to{opacity:0}}
-/* FOOTER */
-.app-ft{background:var(--bg1);border-top:1px solid var(--bd);padding:22px 32px}
-.ft-in{display:flex;flex-direction:column;gap:10px}
-.ft-brand{display:flex;align-items:center;gap:11px}
-.ft-mark{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--blue);display:flex;align-items:center;justify-content:center}
-.ft-mark::after{content:\"\";width:6px;height:6px;border-radius:50%;background:var(--blue);opacity:.65}
-.ft-sysname{font-family:var(--mono);font-size:11px;color:var(--t2);letter-spacing:.10em;text-transform:uppercase}
-.ft-ver{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:2px}
-.ft-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.ft-row span{font-family:var(--mono);font-size:11px;color:var(--t3)}
-.ft-sep{color:var(--bd3)!important}
-.ft-credit{font-family:var(--mono);font-size:11px;color:var(--t2)}
-.ft-credit strong{color:var(--blue)}
-.ft-credit a{color:var(--t2);transition:color .12s}
-.ft-credit a:hover{color:var(--blue)}
-/* RESPONSIVE */
-@media(max-width:1080px){
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg0); color: var(--t1); font-size: 14px; line-height: 1.65; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+button { cursor: pointer; }
+a { color: var(--blue); text-decoration: none; }
+
+/* ═══════════════════════════════════════════════════
+   AUTH PAGE
+═══════════════════════════════════════════════════ */
+#pg-auth {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 30% 40%, rgba(77,148,255,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(224,122,64,0.04) 0%, transparent 50%),
+              var(--bg0);
+  padding: 24px;
+}
+#pg-auth::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(77,148,255,0.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(77,148,255,0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+.auth-card {
+  width: 100%; max-width: 420px;
+  background: var(--bg2); border: 1px solid var(--bd3);
+  border-radius: 8px; padding: 40px 36px;
+  box-shadow: var(--shadow);
+  position: relative; z-index: 1;
+}
+.auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 36px; }
+.auth-logo-mark {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--blue); display: flex; align-items: center; justify-content: center;
+}
+.auth-logo-mark::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--blue); opacity: 0.65; }
+.auth-logo-text { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.4; }
+.auth-logo-text small { display: block; font-size: 9px; color: var(--t3); letter-spacing: 0.08em; margin-top: 2px; }
+.auth-tabs { display: flex; gap: 2px; background: var(--bg1); padding: 3px; border-radius: var(--r); margin-bottom: 28px; }
+.auth-tab { flex: 1; padding: 8px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-align: center; background: none; border: none; color: var(--t3); border-radius: 3px; transition: all 0.15s; }
+.auth-tab.active { background: var(--bg4); color: var(--t1); }
+.auth-form { display: flex; flex-direction: column; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.14em; text-transform: uppercase; }
+.form-input {
+  background: var(--bg1); border: 1px solid var(--bd2); color: var(--t1);
+  font-family: var(--sans); font-size: 13px; padding: 10px 14px;
+  border-radius: var(--r); outline: none; transition: border 0.15s;
+  width: 100%;
+}
+.form-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-dim); }
+.form-input::placeholder { color: var(--t3); }
+.form-error { font-size: 11px; color: var(--high); display: none; }
+.form-error.show { display: block; }
+.btn-auth {
+  padding: 12px; background: var(--blue); color: var(--bg0);
+  font-family: var(--mono); font-size: 12px; font-weight: 500;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  border: none; border-radius: var(--r); transition: opacity 0.15s;
+  margin-top: 4px;
+}
+.btn-auth:hover { opacity: 0.88; }
+.auth-or { display: flex; align-items: center; gap: 12px; color: var(--t3); font-size: 11px; }
+.auth-or::before, .auth-or::after { content: ''; flex: 1; height: 1px; background: var(--bd2); }
+.btn-guest {
+  padding: 10px; background: transparent; color: var(--t2);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+  border: 1px solid var(--bd2); border-radius: var(--r); transition: all 0.15s;
+}
+.btn-guest:hover { border-color: var(--blue-glow); color: var(--t1); }
+.auth-footer { text-align: center; margin-top: 20px; font-size: 11px; color: var(--t3); }
+
+/* Password strength */
+.pwd-strength { height: 3px; background: var(--bd2); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.pwd-strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0; }
+
+/* ═══════════════════════════════════════════════════
+   LANDING PAGE
+═══════════════════════════════════════════════════ */
+#pg-landing { display: none; flex-direction: column; min-height: 100vh; }
+.l-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 52px; border-bottom: 1px solid var(--bd); }
+.l-logo { display: flex; align-items: center; gap: 12px; }
+.l-logo-mark { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--blue); display: flex; align-items: center; justify-content: center; }
+.l-logo-mark::after { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--blue); opacity: 0.65; }
+.l-logo-name { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.12em; text-transform: uppercase; }
+.l-header-right { display: flex; align-items: center; gap: 20px; }
+.l-user-pill { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--bg3); border: 1px solid var(--bd2); border-radius: 20px; font-size: 12px; color: var(--t2); }
+.l-user-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--low); }
+.l-hero { flex: 1; display: flex; align-items: center; justify-content: center; padding: 64px 52px; position: relative; overflow: hidden; }
+.l-hero::before { content: ''; position: absolute; inset: 0; background-image: linear-gradient(rgba(77,148,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(77,148,255,0.025) 1px, transparent 1px); background-size: 54px 54px; pointer-events: none; }
+.l-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; max-width: 1100px; width: 100%; align-items: center; position: relative; }
+.l-hero-left h1 { font-family: var(--serif); font-size: 3.1rem; font-weight: 600; line-height: 1.14; letter-spacing: -0.01em; margin-bottom: 20px; }
+.l-hero-left h1 em { font-style: normal; color: var(--blue); }
+.l-tagline { font-size: 14px; color: var(--t2); line-height: 1.78; margin-bottom: 36px; max-width: 440px; }
+.btn-enter { display: inline-block; padding: 12px 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); background: transparent; border: 1px solid var(--blue); border-radius: var(--r); transition: all 0.15s; }
+.btn-enter:hover { background: var(--blue); color: var(--bg0); }
+.l-stats-row { display: flex; gap: 24px; margin-top: 32px; }
+.l-stat { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px 20px; }
+.l-stat-num { font-family: var(--mono); font-size: 1.8rem; color: var(--blue); font-weight: 500; }
+.l-stat-lbl { font-size: 11px; color: var(--t3); margin-top: 2px; }
+.l-hero-right { padding-left: 48px; border-left: 1px solid var(--bd2); display: flex; flex-direction: column; gap: 28px; }
+.ctx-block .ctx-label { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 8px; }
+.ctx-block p { font-size: 13px; color: var(--t2); line-height: 1.72; }
+.l-footer { display: flex; justify-content: space-between; align-items: center; padding: 14px 52px; border-top: 1px solid var(--bd); flex-wrap: wrap; gap: 8px; }
+.l-footer span { font-family: var(--mono); font-size: 11px; color: var(--t3); }
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD NAV
+═══════════════════════════════════════════════════ */
+#pg-dash { display: none; }
+.d-nav { position: sticky; top: 0; z-index: 200; background: var(--bg1); border-bottom: 1px solid var(--bd); display: flex; align-items: center; justify-content: space-between; padding: 12px 36px; }
+.d-nav-left { display: flex; align-items: center; gap: 18px; }
+.d-live { display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10px; color: var(--low); letter-spacing: 0.10em; text-transform: uppercase; }
+.d-live-dot { width: 6px; height: 6px; background: var(--low); border-radius: 50%; animation: blink 3s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:.9} 50%{opacity:.25} }
+.d-nav-sep { width: 1px; height: 18px; background: var(--bd2); }
+.d-nav-title { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.10em; text-transform: uppercase; }
+.d-nav-right { display: flex; align-items: center; gap: 16px; }
+.d-ts { font-family: var(--mono); font-size: 11px; color: var(--t3); }
+.d-user-name { font-size: 12px; color: var(--t2); padding: 5px 12px; background: var(--bg3); border-radius: 12px; border: 1px solid var(--bd2); }
+
+/* Notification bell */
+.notif-bell-wrap { position: relative; }
+.btn-bell { background: none; border: none; color: var(--t2); font-size: 18px; padding: 4px; transition: color 0.15s; line-height: 1; }
+.btn-bell:hover { color: var(--t1); }
+.notif-badge { position: absolute; top: -2px; right: -4px; min-width: 16px; height: 16px; background: var(--high); color: #fff; font-family: var(--mono); font-size: 9px; border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 0 3px; display: none; }
+
+.btn-logout { font-family: var(--mono); font-size: 10px; color: var(--t3); background: none; border: 1px solid var(--bd2); padding: 5px 12px; border-radius: var(--r); letter-spacing: 0.06em; transition: all 0.12s; }
+.btn-logout:hover { color: var(--high); border-color: var(--high-bd); }
+.btn-refresh { font-family: var(--mono); font-size: 10px; color: var(--t2); background: var(--bg3); border: 1px solid var(--bd2); padding: 5px 12px; border-radius: var(--r); letter-spacing: 0.06em; transition: all 0.12s; }
+.btn-refresh:hover { border-color: var(--blue); color: var(--blue); }
+.btn-refresh.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+/* ═══════════════════════════════════════════════════
+   CONTROLS BAR
+═══════════════════════════════════════════════════ */
+.d-controls { background: var(--bg1); border-bottom: 1px solid var(--bd); padding: 10px 36px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.ctrl-group { display: flex; align-items: center; gap: 9px; }
+.ctrl-label { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+.city-select-wrap { position: relative; }
+#city-select { background: var(--bg2); border: 1px solid var(--bd2); color: var(--t1); font-family: var(--sans); font-size: 13px; padding: 7px 34px 7px 12px; border-radius: var(--r); outline: none; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a9ab8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 11px center; min-width: 240px; cursor: pointer; }
+#city-select:focus { border-color: var(--blue); }
+.win-btn { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; padding: 7px 14px; background: var(--bg2); border: 1px solid var(--bd2); color: var(--t2); border-radius: var(--r); transition: all 0.12s; }
+.win-btn:hover { border-color: var(--blue); color: var(--t1); }
+.win-btn.active { background: var(--blue); border-color: var(--blue); color: var(--bg0); font-weight: 500; }
+.data-source-tag { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; padding: 5px 10px; border-radius: 3px; letter-spacing: 0.06em; }
+.tag-live { color: var(--low); background: var(--low-bg); border: 1px solid var(--low-bd); }
+.tag-demo { color: var(--t3); background: var(--bg3); border: 1px solid var(--bd2); }
+.tag-loading { color: var(--blue); background: var(--blue-dim); border: 1px solid var(--blue-glow); }
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD LAYOUT
+═══════════════════════════════════════════════════ */
+.d-body { display: grid; grid-template-columns: 310px 1fr; min-height: calc(100vh - 109px); }
+.d-sidebar { background: var(--bg1); border-right: 1px solid var(--bd); padding: 24px 20px; display: flex; flex-direction: column; gap: 28px; overflow-y: auto; }
+.d-content { padding: 26px 32px; display: flex; flex-direction: column; gap: 28px; overflow-y: auto; }
+
+.sec-head { margin-bottom: 14px; }
+.sec-title { font-family: var(--mono); font-size: 10px; font-weight: 500; color: var(--t3); letter-spacing: 0.20em; text-transform: uppercase; margin-bottom: 3px; }
+.sec-sub { font-size: 12px; color: var(--t3); }
+
+/* ═══════════════════════════════════════════════════
+   RISK PANEL
+═══════════════════════════════════════════════════ */
+.risk-panel { background: var(--bg2); border: 1px solid var(--bd2); border-radius: var(--r); padding: 20px; }
+.risk-top { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.risk-number { font-family: var(--mono); font-size: 3.6rem; font-weight: 500; line-height: 1; color: var(--t1); letter-spacing: -0.02em; transition: color 0.3s; }
+.risk-badge { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; padding: 4px 9px; border-radius: 3px; }
+.badge-low  { color:var(--low);  background:var(--low-bg);  border:1px solid var(--low-bd); }
+.badge-med  { color:var(--med);  background:var(--med-bg);  border:1px solid var(--med-bd); }
+.badge-high { color:var(--high); background:var(--high-bg); border:1px solid var(--high-bd); }
+.zone-bar-wrap { position: relative; margin-bottom: 6px; }
+.zone-track { height: 4px; border-radius: 3px; background: linear-gradient(to right, var(--low) 0%, var(--low) 40%, var(--med) 40%, var(--med) 70%, var(--high) 70%, var(--high) 100%); opacity: 0.2; }
+.zone-marker { position: absolute; top: -5px; width: 3px; height: 14px; background: var(--t1); border-radius: 2px; transform: translateX(-50%); transition: left 0.55s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 8px rgba(220,232,255,0.4); }
+.zone-labels { display: flex; justify-content: space-between; margin-top: 6px; }
+.zone-labels span { font-family: var(--mono); font-size: 9px; color: var(--t3); letter-spacing: 0.06em; }
+.risk-desc { font-size: 12px; color: var(--t2); line-height: 1.70; padding-top: 12px; border-top: 1px solid var(--bd); }
+.risk-trend { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-family: var(--mono); font-size: 10px; color: var(--t3); }
+.trend-up   { color: var(--high); }
+.trend-down { color: var(--low); }
+.trend-flat { color: var(--t3); }
+
+/* ═══════════════════════════════════════════════════
+   WATCHLIST
+═══════════════════════════════════════════════════ */
+.watchlist { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); padding: 16px; }
+.watchlist-empty { font-size: 12px; color: var(--t3); text-align: center; padding: 16px 0; line-height: 1.6; }
+.watchlist-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--bd); font-size: 12px; cursor: pointer; transition: color 0.12s; }
+.watchlist-item:last-child { border-bottom: none; }
+.watchlist-item:hover .wi-name { color: var(--blue); }
+.wi-name { color: var(--t1); }
+.wi-state { color: var(--t3); font-size: 11px; }
+.wi-badge { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; padding: 2px 6px; border-radius: 2px; }
+.btn-watch { display: flex; align-items: center; gap: 6px; width: 100%; background: var(--bg3); border: 1px dashed var(--bd2); color: var(--t3); border-radius: var(--r); padding: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-align: center; justify-content: center; margin-top: 10px; transition: all 0.12s; }
+.btn-watch:hover { border-color: var(--blue); color: var(--blue); }
+.btn-watch-remove { background: none; border: none; color: var(--t3); font-size: 14px; padding: 0; line-height: 1; transition: color 0.12s; margin-left: 8px; }
+.btn-watch-remove:hover { color: var(--high); }
+
+/* ═══════════════════════════════════════════════════
+   REGION PROFILE
+═══════════════════════════════════════════════════ */
+.region-card { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); padding: 16px 18px; }
+.r-stat { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--bd); font-size: 12px; gap: 10px; }
+.r-stat:last-of-type { border-bottom: none; }
+.r-stat-k { color: var(--t3); white-space: nowrap; }
+.r-stat-v { font-family: var(--mono); font-size: 11px; color: var(--t1); text-align: right; max-width: 55%; }
+.region-note { font-size: 12px; color: var(--t2); line-height: 1.68; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--bd); }
+
+/* ═══════════════════════════════════════════════════
+   CHARTS
+═══════════════════════════════════════════════════ */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.chart-wrap { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); padding: 16px 14px 8px; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.chart-label { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.14em; text-transform: uppercase; }
+.chart-stat { font-family: var(--mono); font-size: 11px; color: var(--t2); }
+canvas { display: block; width: 100%; height: 190px; }
+
+/* Skeleton loading */
+.skeleton { background: linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: var(--r); }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skeleton-chart { height: 190px; }
+.skeleton-text { height: 12px; margin: 6px 0; }
+
+/* ═══════════════════════════════════════════════════
+   FACTOR CARDS
+═══════════════════════════════════════════════════ */
+.factors-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.factor-card { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px; }
+.factor-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.factor-ico { font-size: 13px; color: var(--t3); width: 14px; text-align: center; flex-shrink: 0; }
+.factor-name { font-size: 12px; font-weight: 500; color: var(--t1); flex: 1; line-height: 1.3; }
+.factor-pts { font-family: var(--mono); font-size: 11px; color: var(--t3); white-space: nowrap; }
+.factor-track { height: 2px; background: var(--bd2); border-radius: 1px; margin-bottom: 10px; overflow: hidden; }
+.factor-fill { height: 100%; background: var(--blue); opacity: 0.65; border-radius: 1px; transition: width 0.45s ease; }
+.factor-text { font-size: 12px; color: var(--t2); line-height: 1.65; }
+
+/* ═══════════════════════════════════════════════════
+   CITY RANKINGS
+═══════════════════════════════════════════════════ */
+.rankings-wrap { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); overflow: hidden; }
+.rankings-head { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr 1.5fr; padding: 10px 16px; background: var(--bg1); border-bottom: 1px solid var(--bd); gap: 8px; }
+.rankings-head span { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.12em; text-transform: uppercase; }
+.rank-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr 1.5fr; padding: 9px 16px; border-bottom: 1px solid var(--bd); gap: 8px; align-items: center; font-size: 12px; transition: background 0.12s; cursor: pointer; }
+.rank-row:last-child { border-bottom: none; }
+.rank-row:hover { background: var(--bg3); }
+.rank-city { font-weight: 500; color: var(--t1); }
+.rank-state { color: var(--t3); }
+.rank-score { font-family: var(--mono); font-size: 11px; color: var(--t1); }
+.rank-badge { display: inline-flex; font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 2px; text-transform: uppercase; }
+.rank-trend { font-family: var(--mono); font-size: 11px; }
+.btn-scan { display: flex; align-items: center; gap: 6px; padding: 7px 16px; background: var(--bg3); border: 1px solid var(--bd2); color: var(--t2); border-radius: var(--r); font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; transition: all 0.12s; }
+.btn-scan:hover { border-color: var(--blue); color: var(--blue); }
+.btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════════════════
+   NOTIFICATION PANEL
+═══════════════════════════════════════════════════ */
+.notif-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.notif-overlay.open { opacity: 1; pointer-events: all; }
+.notif-panel { position: fixed; top: 0; right: 0; bottom: 0; width: 360px; background: var(--bg1); border-left: 1px solid var(--bd2); z-index: 301; transform: translateX(100%); transition: transform 0.25s ease; display: flex; flex-direction: column; }
+.notif-panel.open { transform: translateX(0); }
+.notif-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--bd); }
+.notif-panel-title { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.12em; text-transform: uppercase; }
+.notif-panel-actions { display: flex; align-items: center; gap: 12px; }
+.btn-mark-read { font-family: var(--mono); font-size: 10px; color: var(--t3); background: none; border: none; letter-spacing: 0.06em; transition: color 0.12s; }
+.btn-mark-read:hover { color: var(--blue); }
+.btn-close-notif { font-size: 18px; color: var(--t3); background: none; border: none; line-height: 1; transition: color 0.12s; }
+.btn-close-notif:hover { color: var(--t1); }
+.notif-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.notif-empty { text-align: center; padding: 40px 20px; font-size: 13px; color: var(--t3); line-height: 1.6; }
+.notif-item { background: var(--bg2); border: 1px solid var(--bd); border-radius: var(--r); padding: 14px; border-left-width: 3px; }
+.notif-item.unread { background: var(--bg3); }
+.notif-item.level-High   { border-left-color: var(--high); }
+.notif-item.level-Medium { border-left-color: var(--med);  }
+.notif-item.level-Low    { border-left-color: var(--low);  }
+.notif-item.level-system { border-left-color: var(--blue); }
+.notif-item-top { display: flex; justify-content: space-between; margin-bottom: 6px; }
+.notif-city { font-size: 13px; font-weight: 500; color: var(--t1); }
+.notif-time { font-family: var(--mono); font-size: 10px; color: var(--t3); }
+.notif-msg { font-size: 12px; color: var(--t2); line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; gap: 8px; }
+.toast { padding: 12px 18px; background: var(--bg3); border: 1px solid var(--bd3); border-radius: var(--r); font-size: 12px; color: var(--t1); box-shadow: var(--shadow); animation: slideUp 0.2s ease; max-width: 320px; }
+.toast-info   { border-left: 3px solid var(--blue); }
+.toast-success{ border-left: 3px solid var(--low);  }
+.toast-warn   { border-left: 3px solid var(--med);  }
+.toast-error  { border-left: 3px solid var(--high); }
+@keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes fadeOut { from{opacity:1} to{opacity:0} }
+
+/* ═══════════════════════════════════════════════════
+   DATA TRANSPARENCY
+═══════════════════════════════════════════════════ */
+.trans-section { border-top: 1px solid var(--bd); padding-top: 26px; }
+.trans-note { font-size: 13px; color: var(--t2); line-height: 1.72; margin-bottom: 18px; max-width: 640px; }
+.trans-table-wrap { overflow-x: auto; }
+.trans-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.trans-table td { padding: 8px 14px; vertical-align: top; }
+.td-k { color: var(--t2); font-weight: 500; white-space: nowrap; }
+.td-v { font-family: var(--mono); color: var(--t1); font-size: 11px; }
+.td-n { color: var(--t3); font-size: 11px; font-style: italic; }
+.tr-even { background: var(--bg1); }
+.tr-odd  { background: var(--bg2); }
+.tr-div td { padding: 0; height: 1px; background: var(--bd2); }
+
+/* ═══════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════ */
+.app-footer { background: var(--bg1); border-top: 1px solid var(--bd); padding: 24px 36px; }
+.footer-inner { max-width: 100%; display: flex; flex-direction: column; gap: 12px; }
+.footer-brand { display: flex; align-items: center; gap: 12px; }
+.footer-logo-mark { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.footer-logo-mark::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--blue); opacity: 0.65; }
+.footer-sys-name { font-family: var(--mono); font-size: 11px; color: var(--t2); letter-spacing: 0.10em; text-transform: uppercase; }
+.footer-version { font-family: var(--mono); font-size: 10px; color: var(--t3); letter-spacing: 0.06em; margin-top: 2px; }
+.footer-row { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.footer-row span { font-family: var(--mono); font-size: 11px; color: var(--t3); }
+.footer-sep { color: var(--bd2) !important; }
+.footer-credit { font-family: var(--mono); font-size: 11px; color: var(--t2); }
+.footer-credit strong { color: var(--blue); }
+.footer-credit a { color: var(--t2); text-decoration: none; transition: color 0.12s; }
+.footer-credit a:hover { color: var(--blue); }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════ */
+@media(max-width:1100px) {
   .d-body{grid-template-columns:1fr}
-  .d-side{border-right:none;border-bottom:1px solid var(--bd)}
+  .d-sidebar{min-height:auto;border-right:none;border-bottom:1px solid var(--bd)}
+  .factors-grid{grid-template-columns:1fr}
   .charts-row{grid-template-columns:1fr}
-  .adm-stats{grid-template-columns:repeat(2,1fr)}
-  .adm-tables{grid-template-columns:1fr}
+  .rankings-head,.rank-row{grid-template-columns:2fr 1fr 1.5fr}
+  .rank-row .rank-state,.rank-row .rank-trend,.rankings-head .h-trend,.rankings-head .h-state{display:none}
 }
-@media(max-width:700px){
-  .l-header,.l-footer{padding:14px 18px}
-  .l-hero{padding:36px 18px}
-  .l-grid{grid-template-columns:1fr;gap:36px}
-  .l-grid h1{font-size:2.2rem}
-  .l-right{padding-left:0;border-left:none;border-top:1px solid var(--bd);padding-top:26px}
+@media(max-width:720px) {
+  .l-header,.l-footer{padding:14px 20px}
+  .l-hero{padding:36px 20px}
+  .l-hero-grid{grid-template-columns:1fr;gap:36px}
+  .l-hero-left h1{font-size:2.2rem}
+  .l-hero-right{padding-left:0;border-left:none;border-top:1px solid var(--bd);padding-top:28px}
+  .l-stats-row{flex-wrap:wrap;gap:12px}
   .d-nav,.d-controls{padding:10px 16px}
-  .d-main,.d-side{padding:18px 14px}
+  .d-content,.d-sidebar{padding:18px 16px}
   .d-nav-title,.d-ts{display:none}
-  .notif-pan{width:100%}
-  .auth-card{padding:28px 22px}
-  .adm-body{padding:18px 16px}
-  .adm-stats{grid-template-columns:1fr 1fr}
+  .notif-panel{width:100%}
+  .l-header-right .l-user-pill{display:none}
 }
+
 </style>
 </head>
-<body>'''
+<body>
 
-with open(out, 'w') as f:
-    f.write(p1)
-print('Part 1 done:', len(p1))
-"
-echo "Part 1 written"
+<!-- ════════════════════════════════════════════════════
+     AUTH PAGE
+════════════════════════════════════════════════════ -->
+<div id="pg-auth">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-mark"></div>
+      <div class="auth-logo-text">
+        Silent Disaster
+        <small>Flood Early Signal System · India v2.0</small>
+      </div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab('signup')">Register</button>
+    </div>
+    <!-- Login form -->
+    <div id="form-login">
+      <div class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="l-email" type="email" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="l-pwd" type="password" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="form-error" id="l-error">Invalid email or password.</div>
+        <button class="btn-auth" onclick="doLogin()">Sign In to Dashboard</button>
+        <div class="auth-or">or</div>
+        <button class="btn-guest" onclick="doGuest()">Continue as Guest &rarr;</button>
+      </div>
+    </div>
+    <!-- Signup form -->
+    <div id="form-signup" style="display:none">
+      <div class="auth-form">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input class="form-input" id="s-name" type="text" placeholder="Your Name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input class="form-input" id="s-email" type="email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="s-pwd" type="password" placeholder="Min. 6 characters" oninput="checkPwdStrength(this.value)">
+          <div class="pwd-strength"><div class="pwd-strength-fill" id="pwd-fill"></div></div>
+        </div>
+        <div class="form-error" id="s-error">Please fill all fields.</div>
+        <button class="btn-auth" onclick="doRegister()">Create Account</button>
+        <div class="auth-or">or</div>
+        <button class="btn-guest" onclick="doGuest()">Continue as Guest &rarr;</button>
+      </div>
+    </div>
+    <div class="auth-footer">Demo: guest@sdess.in / guest123</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════════════════════ -->
+<section id="pg-landing">
+  <header class="l-header">
+    <div class="l-logo">
+      <div class="l-logo-mark"></div>
+      <span class="l-logo-name">Silent Disaster</span>
+    </div>
+    <div class="l-header-right">
+      <div class="l-user-pill"><div class="l-user-dot"></div><span id="l-user-label">Guest</span></div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+  <div class="l-hero">
+    <div class="l-hero-grid">
+      <div class="l-hero-left">
+        <h1>Real-time risk<br>awareness — before<br>a flood <em>strikes.</em></h1>
+        <p class="l-tagline">Live weather data from Open-Meteo, combined with transparent rule-based logic, surfaces early flood risk for 50+ Indian cities — explained in plain language, updated every 30 minutes.</p>
+        <button class="btn-enter" onclick="showDash()">Open Live Dashboard &rarr;</button>
+        <div class="l-stats-row">
+          <div class="l-stat"><div class="l-stat-num">52</div><div class="l-stat-lbl">Cities covered</div></div>
+          <div class="l-stat"><div class="l-stat-num">4</div><div class="l-stat-lbl">Risk factors</div></div>
+          <div class="l-stat"><div class="l-stat-num">Live</div><div class="l-stat-lbl">Weather source</div></div>
+        </div>
+      </div>
+      <div class="l-hero-right">
+        <div class="ctx-block">
+          <div class="ctx-label">Live weather integration</div>
+          <p>Rainfall and temperature data is fetched from the Open-Meteo API in real time — the same source used by meteorological research tools. No simulations. If a city is experiencing unusually heavy rain right now, this system will show it.</p>
+        </div>
+        <div class="ctx-block">
+          <div class="ctx-label">Transparent risk scoring</div>
+          <p>Every score is built from four auditable rules: rainfall acceleration, cumulative volume, historical flood sensitivity, and temperature-rainfall interaction. The logic is fully visible in the Data Transparency panel. No black box.</p>
+        </div>
+        <div class="ctx-block">
+          <div class="ctx-label">Alert & notification system</div>
+          <p>Add cities to your watchlist. When assessed risk crosses your threshold, the system sends an in-app alert and a browser notification. Alert history is stored locally across sessions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="l-footer">
+    <span>Data: Open-Meteo API (real-time) &nbsp;·&nbsp; Risk Logic: Rule-based, deterministic</span>
+    <span>52 Indian cities &nbsp;·&nbsp; No ML involved</span>
+  </footer>
+</section>
+
+
+<!-- ════════════════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════════════════ -->
+<section id="pg-dash">
+
+  <!-- Nav -->
+  <nav class="d-nav">
+    <div class="d-nav-left">
+      <div class="d-live"><span class="d-live-dot"></span><span>Monitoring</span></div>
+      <div class="d-nav-sep"></div>
+      <span class="d-nav-title">Silent Disaster &nbsp;·&nbsp; Flood Risk Dashboard</span>
+    </div>
+    <div class="d-nav-right">
+      <span class="d-ts" id="d-ts">—</span>
+      <button class="btn-refresh" id="btn-refresh" onclick="manualRefresh()" title="Refresh data">&#8635;</button>
+      <div class="notif-bell-wrap">
+        <button class="btn-bell" onclick="toggleNotifPanel()" title="Alerts">&#128276;</button>
+        <div class="notif-badge" id="notif-badge">0</div>
+      </div>
+      <div class="d-user-name" id="d-user-name">Guest</div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+      <button class="btn-back" onclick="showLanding()" style="font-family:var(--mono);font-size:10px;color:var(--t3);background:none;border:none;letter-spacing:.05em;cursor:pointer;" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color='var(--t3)'">&larr; Overview</button>
+    </div>
+  </nav>
+
+  <!-- Controls -->
+  <div class="d-controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label">City</span>
+      <select id="city-select"></select>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Window</span>
+      <button class="win-btn active" data-days="7">7 Days</button>
+      <button class="win-btn" data-days="14">14 Days</button>
+    </div>
+    <div id="data-tag" class="data-source-tag tag-loading">&#9679; Loading…</div>
+    <div style="margin-left:auto;display:flex;gap:8px;">
+      <button class="btn-scan" id="btn-scan" onclick="scanTopCities()">&#9741; Scan Top-Risk Cities</button>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="d-body">
+
+    <!-- Sidebar -->
+    <aside class="d-sidebar">
+
+      <!-- Risk Score -->
+      <div>
+        <div class="sec-head"><div class="sec-title">Risk Assessment</div></div>
+        <div class="risk-panel">
+          <div class="risk-top">
+            <span class="risk-number" id="r-score">—</span>
+            <span class="risk-badge" id="r-badge">—</span>
+          </div>
+          <div class="zone-bar-wrap">
+            <div class="zone-track"></div>
+            <div class="zone-marker" id="r-marker" style="left:0%"></div>
+          </div>
+          <div class="zone-labels">
+            <span>LOW 0–40</span><span>MED 41–70</span><span>HIGH 71–100</span>
+          </div>
+          <p class="risk-desc" id="r-desc">Fetching live data…</p>
+          <div class="risk-trend" id="r-trend"></div>
+        </div>
+      </div>
+
+      <!-- Watchlist -->
+      <div>
+        <div class="sec-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div class="sec-title" style="margin-bottom:0">Watchlist</div>
+        </div>
+        <div class="watchlist" id="watchlist-panel">
+          <div class="watchlist-empty">No cities monitored yet.<br>Add a city using the button below.</div>
+        </div>
+        <button class="btn-watch" onclick="addCurrentToWatch()">&#9733; Watch Current City</button>
+      </div>
+
+      <!-- Region Profile -->
+      <div>
+        <div class="sec-head"><div class="sec-title">Region Profile</div></div>
+        <div class="region-card">
+          <div class="r-stat"><span class="r-stat-k">State</span><span class="r-stat-v" id="rp-state">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Avg Annual Rain</span><span class="r-stat-v" id="rp-rain">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Sensitivity</span><span class="r-stat-v" id="rp-sens">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Drainage</span><span class="r-stat-v" id="rp-drain">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">River Proximity</span><span class="r-stat-v" id="rp-river">—</span></div>
+          <div class="r-stat"><span class="r-stat-k">Known Flood Years</span><span class="r-stat-v" id="rp-years">—</span></div>
+          <p class="region-note" id="rp-note">—</p>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Content -->
+    <main class="d-content">
+
+      <!-- Charts -->
+      <div>
+        <div class="sec-head">
+          <div class="sec-title">Live Environmental Trends</div>
+          <div class="sec-sub">Real-time data from Open-Meteo API · Updated every 30 minutes</div>
+        </div>
+        <div class="charts-row">
+          <div class="chart-wrap">
+            <div class="chart-header">
+              <div class="chart-label">Rainfall · mm/day</div>
+              <div class="chart-stat" id="ch-rain-stat">—</div>
+            </div>
+            <canvas id="chart-rain"></canvas>
+          </div>
+          <div class="chart-wrap">
+            <div class="chart-header">
+              <div class="chart-label">Temperature · °C</div>
+              <div class="chart-stat" id="ch-temp-stat">—</div>
+            </div>
+            <canvas id="chart-temp"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Factor Analysis -->
+      <div>
+        <div class="sec-head">
+          <div class="sec-title">Risk Factor Breakdown</div>
+          <div class="sec-sub">Each factor scored independently · Sorted by contribution</div>
+        </div>
+        <div class="factors-grid" id="factors-grid"></div>
+      </div>
+
+      <!-- City Rankings -->
+      <div>
+        <div class="sec-head" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div>
+            <div class="sec-title" style="margin-bottom:3px">National Risk Overview</div>
+            <div class="sec-sub">Top flood-sensitive cities · Historical sensitivity baseline</div>
+          </div>
+        </div>
+        <div class="rankings-wrap">
+          <div class="rankings-head">
+            <span>City</span><span class="h-state">State</span>
+            <span>Sensitivity</span><span>Risk Level</span><span class="h-trend">Trend</span>
+          </div>
+          <div id="rankings-body"><!-- populated by JS --></div>
+        </div>
+      </div>
+
+      <!-- Data Transparency -->
+      <div class="trans-section">
+        <div class="sec-head"><div class="sec-title">Data Transparency</div></div>
+        <p class="trans-note">Every value used in this risk assessment is listed below. The scoring is fully deterministic — the same environmental inputs will always produce the same output. All factor thresholds are documented in the source code.</p>
+        <div class="trans-table-wrap">
+          <table class="trans-table"><tbody id="trans-tbody"></tbody></table>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="app-footer">
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <div class="footer-logo-mark"></div>
+            <div>
+              <div class="footer-sys-name">Silent Disaster Early Signal System</div>
+              <div class="footer-version">v2.0 · Real-time Flood Risk Monitoring for India</div>
+            </div>
+          </div>
+          <div class="footer-row">
+            <span>&#127760; Data: Open-Meteo API (open-source, no key required)</span>
+            <span class="footer-sep">·</span>
+            <span>&#9670; Risk Logic: Rule-based, transparent, no ML</span>
+            <span class="footer-sep">·</span>
+            <span>&#127750; 52 Indian Cities</span>
+            <span class="footer-sep">·</span>
+            <span>&#128274; Data stored locally only</span>
+          </div>
+          <div class="footer-credit">
+            Designed &amp; Developed by <strong>Rishav Singh</strong>
+            <span class="footer-sep">&nbsp;·&nbsp;</span>
+            B.Tech Computer Science
+            <span class="footer-sep">&nbsp;·&nbsp;</span>
+            <a href="https://github.com/rishavsingh" target="_blank" rel="noopener">GitHub</a>
+            <span class="footer-sep">&nbsp;·&nbsp;</span>
+            Portfolio Project &mdash; Early Disaster Awareness System
+          </div>
+        </div>
+      </footer>
+
+    </main>
+  </div>
+
+</section>
+
+<!-- Notification Panel -->
+<div class="notif-overlay" id="notif-overlay" onclick="toggleNotifPanel()"></div>
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-panel-head">
+    <span class="notif-panel-title">Alert History</span>
+    <div class="notif-panel-actions">
+      <button class="btn-mark-read" onclick="AlertSystem.markAllRead();AlertSystem.renderPanel()">Mark all read</button>
+      <button class="btn-close-notif" onclick="toggleNotifPanel()">&times;</button>
+    </div>
+  </div>
+  <div class="notif-list" id="notif-list"></div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+
+<!-- ════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════ -->
+<script>
+
+/* ════════════════════════════════════════════════
+   CITY DATABASE — 52 Indian cities
+   Each entry: name, state, lat, lon, region,
+   sensitivity(0-100), drainage, river_prox,
+   avg_rain(mm), flood_years[], note
+════════════════════════════════════════════════ */
+const CITIES = {
+  // ── NORTH INDIA ──────────────────────────
+  Delhi:       {n:"Delhi",           s:"Delhi",             la:28.6139, lo:77.2090, re:"North",     se:55, dr:"Medium",     ri:"High",      ar:714,  fy:[2010,2013,2018,2021], nt:"Delhi's low-lying Yamuna floodplain areas are flood-prone during monsoon peaks. Rapid urbanisation has reduced percolation, increasing surface runoff significantly. The 2013 and 2021 events inundated thousands of homes near the river bank."},
+  Lucknow:     {n:"Lucknow",         s:"Uttar Pradesh",     la:26.8467, lo:80.9462, re:"North",     se:65, dr:"Low-Medium", ri:"High",      ar:897,  fy:[2010,2015,2019,2021], nt:"Situated on the Gomti river, Lucknow experiences periodic flooding in low-lying areas near the banks. Encroachment on natural drainage channels has amplified urban inundation risk."},
+  Kanpur:      {n:"Kanpur",          s:"Uttar Pradesh",     la:26.4499, lo:80.3319, re:"North",     se:60, dr:"Low",        ri:"Very High", ar:862,  fy:[2008,2013,2019],      nt:"Kanpur sits directly on the Ganga. Industrial areas near the river are vulnerable to flooding during monsoon high-water events. Urban expansion onto natural retention zones has worsened outcomes."},
+  Varanasi:    {n:"Varanasi",        s:"Uttar Pradesh",     la:25.3176, lo:82.9739, re:"North",     se:68, dr:"Low",        ri:"Very High", ar:1112, fy:[2008,2013,2016,2019,2021], nt:"Varanasi sits directly on the Ganges and its ghats flood regularly during monsoon peaks. The river can rise by 15+ metres, inundating large sections of the city including historic areas."},
+  Prayagraj:   {n:"Prayagraj",       s:"Uttar Pradesh",     la:25.4358, lo:81.8463, re:"North",     se:70, dr:"Low",        ri:"Very High", ar:1027, fy:[2009,2013,2016,2019,2021], nt:"At the confluence of Ganga, Yamuna, and the mythical Saraswati, Prayagraj is structurally exposed to flooding. The 2019 monsoon submerged hundreds of villages and urban wards."},
+  Agra:        {n:"Agra",            s:"Uttar Pradesh",     la:27.1767, lo:78.0081, re:"North",     se:42, dr:"Medium",     ri:"Medium",    ar:688,  fy:[2010,2018],           nt:"Agra faces moderate flood risk from the Yamuna. Areas near the river, including zones near the Taj Mahal complex, have been affected during extreme monsoon events."},
+  Dehradun:    {n:"Dehradun",        s:"Uttarakhand",       la:30.3165, lo:78.0322, re:"North",     se:58, dr:"Medium-Low", ri:"Medium",    ar:2073, fy:[2012,2016,2021,2023], nt:"Dehradun faces flash flooding risk from the Rispana and Bindal rivers during intense monsoon spells. Unplanned hillside development increases runoff that overwhelms the urban drainage system."},
+  Haridwar:    {n:"Haridwar",        s:"Uttarakhand",       la:29.9457, lo:78.1642, re:"North",     se:72, dr:"Low",        ri:"Very High", ar:1900, fy:[2010,2013,2017,2021,2023], nt:"Haridwar sits directly on the Ganga and is among the most flood-exposed cities in northern India. The ghats and lower town areas flood regularly during high-discharge monsoon periods."},
+  Meerut:      {n:"Meerut",          s:"Uttar Pradesh",     la:28.9845, lo:77.7064, re:"North",     se:50, dr:"Medium",     ri:"Medium",    ar:796,  fy:[2010,2019],           nt:"Meerut's low-lying western areas face waterlogging during heavy monsoon events. Drainage infrastructure remains underdeveloped relative to the city's growth."},
+
+  // ── EAST INDIA ───────────────────────────
+  Kolkata:     {n:"Kolkata",         s:"West Bengal",       la:22.5726, lo:88.3639, re:"East",      se:80, dr:"Low",        ri:"High",      ar:1582, fy:[2000,2007,2015,2017,2021], nt:"Kolkata's position on the Hooghly river delta makes it structurally exposed. Tidal backflow during monsoon inhibits gravity drainage. The eastern wetlands that buffered floods have been steadily converted to built-up land."},
+  Patna:       {n:"Patna",           s:"Bihar",             la:25.5941, lo:85.1376, re:"East",      se:85, dr:"Low",        ri:"Very High", ar:1020, fy:[2007,2008,2013,2016,2019,2020], nt:"Patna sits on the Ganges floodplain and is structurally one of India's most flood-exposed urban centres. Seasonal flooding is near-certain; severity varies by monsoon intensity."},
+  Bhubaneswar: {n:"Bhubaneswar",     s:"Odisha",            la:20.2961, lo:85.8245, re:"East",      se:82, dr:"Low-Medium", ri:"High",      ar:1496, fy:[2006,2008,2011,2013,2018,2020], nt:"Odisha is among India's most cyclone-exposed states. Bhubaneswar faces compound risk: pre-cyclone rainfall saturates soil, then surge causes river overflow. The Mahanadi basin amplifies risk rapidly."},
+  Cuttack:     {n:"Cuttack",         s:"Odisha",            la:20.4625, lo:85.8828, re:"East",      se:86, dr:"Low",        ri:"Very High", ar:1450, fy:[2006,2008,2011,2013,2018,2020], nt:"Cuttack is built on a delta between the Mahanadi and Kathajodi rivers and is one of the oldest flood-prone cities in India. Major events occur almost every monsoon season."},
+  Ranchi:      {n:"Ranchi",          s:"Jharkhand",         la:23.3441, lo:85.3096, re:"East",      se:55, dr:"Medium",     ri:"Medium",    ar:1430, fy:[2016,2020,2022],      nt:"Ranchi faces localised flash flooding during intense monsoon rainfall. Hilly terrain generates rapid runoff that the urban drainage system cannot absorb. Low-lying areas near Kanke reservoir are most affected."},
+  Jamshedpur:  {n:"Jamshedpur",      s:"Jharkhand",         la:22.8046, lo:86.2029, re:"East",      se:62, dr:"Medium",     ri:"High",      ar:1220, fy:[2008,2016,2020],      nt:"Jamshedpur sits at the confluence of the Subarnarekha and Kharkai rivers. Industrial zones and older residential areas near the rivers face significant inundation during peak monsoon flows."},
+  Siliguri:    {n:"Siliguri",        s:"West Bengal",       la:26.7271, lo:88.3953, re:"East",      se:72, dr:"Low-Medium", ri:"High",      ar:2900, fy:[2015,2017,2020,2022], nt:"Siliguri sits near the foothills of the Himalayas and receives very high rainfall. Flash flooding from the Teesta and Mahananda rivers is frequent. Climate-linked glacier melt is increasing flood frequency."},
+
+  // ── NORTHEAST INDIA ──────────────────────
+  Guwahati:    {n:"Guwahati",        s:"Assam",             la:26.1445, lo:91.7362, re:"Northeast", se:88, dr:"Very Low",   ri:"Very High", ar:1600, fy:[2012,2015,2017,2019,2020,2022], nt:"Guwahati faces compound flooding from both the Brahmaputra and urban runoff. The river's rising sediment bed makes overbank events increasingly common. Hilly fringes generate rapid runoff the city drainage cannot absorb."},
+  Shillong:    {n:"Shillong",        s:"Meghalaya",         la:25.5788, lo:91.8933, re:"Northeast", se:75, dr:"Medium-Low", ri:"High",      ar:2400, fy:[2016,2018,2020,2022], nt:"Shillong is one of India's wettest cities. Steep terrain generates intense flash floods during monsoon. Unplanned construction on hillsides has blocked natural drainage channels, increasing inundation frequency."},
+  Imphal:      {n:"Imphal",          s:"Manipur",           la:24.8170, lo:93.9368, re:"Northeast", se:65, dr:"Medium",     ri:"Medium",    ar:1468, fy:[2015,2018,2022],      nt:"Imphal valley is a natural bowl, making it susceptible to flooding when the Imphal and Iril rivers overflow. The 2015 and 2022 floods caused widespread damage to crops and infrastructure."},
+  Agartala:    {n:"Agartala",        s:"Tripura",           la:23.8315, lo:91.2868, re:"Northeast", se:72, dr:"Low",        ri:"High",      ar:2050, fy:[2015,2017,2019,2022], nt:"Agartala is frequently flooded by the Haora river. The city's low elevation and proximity to Bangladesh means floodwaters can take days to recede. Annual flooding during monsoon is nearly routine."},
+  Dibrugarh:   {n:"Dibrugarh",       s:"Assam",             la:27.4728, lo:94.9120, re:"Northeast", se:82, dr:"Very Low",   ri:"Very High", ar:2880, fy:[2012,2015,2017,2019,2022], nt:"Dibrugarh sits directly on the Brahmaputra. Bank erosion is a constant threat. Annual floods displace thousands and damage infrastructure. The 2022 floods were the worst in over a decade."},
+
+  // ── WEST INDIA ───────────────────────────
+  Mumbai:      {n:"Mumbai",          s:"Maharashtra",       la:19.0760, lo:72.8777, re:"West",      se:78, dr:"Low",        ri:"High",      ar:2167, fy:[2005,2017,2019,2020,2021], nt:"The 2005 deluge (944 mm in 24 h) set the benchmark for infrastructure failure. Drainage capacity is structurally insufficient for peak monsoon surges. Low-elevation neighbourhoods near the Mithi River flood even with moderate sustained rainfall."},
+  Pune:        {n:"Pune",            s:"Maharashtra",       la:18.5204, lo:73.8567, re:"West",      se:52, dr:"Medium",     ri:"Medium",    ar:722,  fy:[2019,2021],           nt:"Pune's flood risk centres on the Mula-Mutha river and its tributaries. The 2019 and 2021 floods — partly triggered by uncontrolled dam releases — caused widespread urban inundation in riverside wards."},
+  Nashik:      {n:"Nashik",          s:"Maharashtra",       la:19.9975, lo:73.7898, re:"West",      se:48, dr:"Medium",     ri:"Medium",    ar:665,  fy:[2019,2021],           nt:"Nashik's flood risk is largely governed by the Godavari river and Gangapur dam releases. Urban expansion into river buffer zones has increased flood impact on residential areas."},
+  Nagpur:      {n:"Nagpur",          s:"Maharashtra",       la:21.1458, lo:79.0882, re:"West",      se:50, dr:"Medium",     ri:"Medium",    ar:1107, fy:[2015,2019,2022],      nt:"Nagpur's low-lying zones along the Nag river are prone to urban flooding during heavy rainfall. The Ambazari lake overflow in 2006 remains a reference event for infrastructure planning."},
+  Ahmedabad:   {n:"Ahmedabad",       s:"Gujarat",           la:23.0225, lo:72.5714, re:"West",      se:45, dr:"Medium",     ri:"Low-Medium",ar:782,  fy:[2005,2015,2017],      nt:"Ahmedabad faces moderate flood risk from the Sabarmati river. The 2017 floods caused significant disruption in low-lying areas. Urban growth has encroached on floodplain zones in several wards."},
+  Surat:       {n:"Surat",           s:"Gujarat",           la:21.1702, lo:72.8311, re:"West",      se:58, dr:"Medium-Low", ri:"High",      ar:1077, fy:[2006,2013,2017,2021], nt:"Surat sits at the mouth of the Tapi river and is highly exposed to tidal and riverine flooding. The 2006 floods were catastrophic. Subsequent infrastructure improvements have reduced but not eliminated risk."},
+  Vadodara:    {n:"Vadodara",        s:"Gujarat",           la:22.3072, lo:73.1812, re:"West",      se:52, dr:"Medium",     ri:"Medium",    ar:879,  fy:[2005,2008,2015,2019], nt:"Vadodara's flood risk centres on the Vishwamitri river. The proximity to the Ajwa and Pratappura dams means flood risk can escalate rapidly when dam gates are opened during heavy monsoon."},
+  Rajkot:      {n:"Rajkot",          s:"Gujarat",           la:22.3039, lo:70.8022, re:"West",      se:32, dr:"Medium",     ri:"Low",       ar:588,  fy:[2007,2019],           nt:"Rajkot has limited flood history due to a semi-arid climate and fast-draining sandy soil. Localised urban flooding occurs occasionally during rare intense rainfall events."},
+
+  // ── CENTRAL INDIA ────────────────────────
+  Indore:      {n:"Indore",          s:"Madhya Pradesh",    la:22.7196, lo:75.8577, re:"Central",   se:40, dr:"Medium",     ri:"Low",       ar:893,  fy:[2015,2020],           nt:"Indore has moderate flood risk, primarily from localised waterlogging in low-lying areas during intense rainfall events. The Khan river occasionally overflows after heavy monsoon spells."},
+  Bhopal:      {n:"Bhopal",          s:"Madhya Pradesh",    la:23.2599, lo:77.4126, re:"Central",   se:45, dr:"Medium",     ri:"Medium",    ar:1146, fy:[2015,2019,2021],      nt:"Bhopal's Upper and Lower Lakes regulate some flood risk, but low-lying areas in the old city face inundation risk when rainfall exceeds drainage capacity. The 2021 floods caused significant property damage."},
+  Jabalpur:    {n:"Jabalpur",        s:"Madhya Pradesh",    la:23.1815, lo:79.9864, re:"Central",   se:55, dr:"Medium-Low", ri:"High",      ar:1355, fy:[2019,2021,2023],      nt:"Jabalpur sits near the Narmada river and faces flood risk during high monsoon. The spectacular Bedaghtat gorge can become dangerous during peak discharge events."},
+  Raipur:      {n:"Raipur",          s:"Chhattisgarh",      la:21.2514, lo:81.6296, re:"Central",   se:58, dr:"Low-Medium", ri:"Medium",    ar:1321, fy:[2010,2019,2022],      nt:"Raipur faces flooding from the Kharoon river and its tributaries. Rapid urbanisation without adequate stormwater infrastructure has increased waterlogging frequency over the last decade."},
+
+  // ── NORTHWEST INDIA ──────────────────────
+  Jaipur:      {n:"Jaipur",          s:"Rajasthan",         la:26.9124, lo:75.7873, re:"Northwest", se:31, dr:"Medium",     ri:"Low",       ar:590,  fy:[2006,2014],           nt:"Jaipur has limited flood history due to low annual rainfall and fast-draining sandy soil. Occasional extreme events cause localised urban flooding. Risk is most acute when rare high-intensity rainfall hits heat-parched ground."},
+  Jodhpur:     {n:"Jodhpur",         s:"Rajasthan",         la:26.2389, lo:73.0243, re:"Northwest", se:22, dr:"Good",        ri:"Very Low",  ar:362,  fy:[2006,2019],           nt:"Jodhpur is one of India's driest cities. Flood risk is minimal under normal conditions, but rare intense rainfall events can cause flash floods in natural drainage channels through the rocky terrain."},
+  Udaipur:     {n:"Udaipur",         s:"Rajasthan",         la:24.5854, lo:73.7125, re:"Northwest", se:35, dr:"Medium",     ri:"Low-Medium",ar:635,  fy:[2007,2017],           nt:"Udaipur's extensive lake system normally acts as a flood buffer. When these lakes overflow during exceptional rainfall, downstream areas can be inundated. The Fateh Sagar overflow in 2007 is a notable event."},
+  Chandigarh:  {n:"Chandigarh",      s:"Punjab/Haryana",    la:30.7333, lo:76.7794, re:"Northwest", se:45, dr:"Medium",     ri:"Medium",    ar:1110, fy:[2010,2019,2023],      nt:"Chandigarh's well-planned drainage can handle normal monsoon loads, but extreme events overwhelm the system. Flooding from Sukhna lake overflow and from Phase areas has occurred during exceptional years."},
+  Amritsar:    {n:"Amritsar",        s:"Punjab",            la:31.6340, lo:74.8723, re:"Northwest", se:42, dr:"Medium-Low", ri:"Medium",    ar:680,  fy:[2014,2019],           nt:"Amritsar faces localised flooding during heavy monsoon events, primarily due to inadequate urban drainage. Proximity to Pakistan means floodwaters from upstream rivers can also affect the city."},
+  Ludhiana:    {n:"Ludhiana",        s:"Punjab",            la:30.9010, lo:75.8573, re:"Northwest", se:48, dr:"Medium",     ri:"Medium",    ar:762,  fy:[2010,2019,2023],      nt:"Ludhiana faces flooding from the Sutlej river during high discharge events. Industrial wastewater has degraded river bank stability. The 2019 floods were among the most severe in recent memory."},
+  Shimla:      {n:"Shimla",          s:"Himachal Pradesh",  la:31.1048, lo:77.1734, re:"Northwest", se:50, dr:"Medium",     ri:"Medium-Low",ar:1578, fy:[2010,2018,2021,2023], nt:"Shimla faces flash flood and landslide risk during intense monsoon events. Unplanned hillside development has destabilised slopes. The 2023 monsoon was particularly destructive, with multiple cloudburst events."},
+  Jammu:       {n:"Jammu",           s:"J&K",               la:32.7266, lo:74.8570, re:"Northwest", se:55, dr:"Medium-Low", ri:"High",      ar:1073, fy:[2010,2014,2019,2021], nt:"Jammu sits on the Tawi river and experiences periodic flooding. The 2014 Kashmir floods, while centred upstream, severely impacted Jammu too. Cloudburst events in the Shivalik hills can cause flash flooding with little warning."},
+
+  // ── SOUTH INDIA ──────────────────────────
+  Chennai:     {n:"Chennai",         s:"Tamil Nadu",        la:13.0827, lo:80.2707, re:"South",     se:71, dr:"Medium-Low", ri:"High",      ar:1400, fy:[2005,2010,2015,2021], nt:"The 2015 floods submerged residential and industrial zones city-wide. The Adyar and Cooum rivers overflow frequently during northeast monsoon. Encroachment on natural water bodies has significantly reduced absorption capacity."},
+  Hyderabad:   {n:"Hyderabad",       s:"Telangana",         la:17.3850, lo:78.4867, re:"South",     se:52, dr:"Medium",     ri:"Medium",    ar:812,  fy:[2000,2016,2020],      nt:"Hyderabad historically relied on a tank network for water management. Encroachment on these structures redirects flooding into residential areas. The 2020 floods caused significant damage near the Musi river."},
+  Bangalore:   {n:"Bangalore",       s:"Karnataka",         la:12.9716, lo:77.5946, re:"South",     se:40, dr:"Medium",     ri:"Low",       ar:985,  fy:[2017,2021,2022],      nt:"Bangalore's flood risk has risen sharply due to rapid urban expansion onto lake beds and natural drains. The 2022 floods inundated IT corridors and residential areas, highlighting the cost of unchecked development."},
+  Visakhapatnam:{n:"Visakhapatnam",  s:"Andhra Pradesh",    la:17.6868, lo:83.2185, re:"South",     se:72, dr:"Medium-Low", ri:"High",      ar:1037, fy:[2010,2014,2018,2021], nt:"Visakhapatnam is highly exposed to cyclones from the Bay of Bengal. Storm surges combined with heavy monsoon rainfall create compound flood events. The city's coastal low-lying areas are structurally vulnerable."},
+  Vijayawada:  {n:"Vijayawada",      s:"Andhra Pradesh",    la:16.5062, lo:80.6480, re:"South",     se:68, dr:"Low-Medium", ri:"High",      ar:931,  fy:[2009,2014,2016,2020,2021], nt:"Vijayawada sits on the Krishna river and is regularly affected by upstream dam releases during heavy monsoon. The 2020 event was catastrophic, with the Pulichintala and Srisailam dams releasing record water volumes."},
+  Thiruvananthapuram:{n:"Trivandrum",s:"Kerala",             la:8.5241,  lo:76.9366, re:"South",     se:68, dr:"Medium-Low", ri:"High",      ar:1841, fy:[2017,2018,2019],      nt:"Kerala's capital faces flooding during the southwest monsoon. The 2018 Kerala floods — the worst in a century — severely impacted this district. Hilly terrain combined with high annual rainfall creates flash flood risk."},
+  Kochi:       {n:"Kochi",           s:"Kerala",             la:9.9312,  lo:76.2673, re:"South",     se:75, dr:"Low-Medium", ri:"Very High", ar:3050, fy:[2017,2018,2019,2021], nt:"Kochi sits in a coastal deltaic zone with a complex network of backwaters, rivers, and canals. It receives among the highest annual rainfall of any major Indian city. The 2018 floods submerged the airport and large parts of the city."},
+  Coimbatore:  {n:"Coimbatore",      s:"Tamil Nadu",         la:11.0168, lo:76.9558, re:"South",     se:42, dr:"Medium",     ri:"Low",       ar:699,  fy:[2015,2021],           nt:"Coimbatore faces localised flooding from the Noyyal river and its tributaries. Low-lying areas in the city are affected during extreme rainfall events. The 2021 floods caused significant disruption."},
+  Madurai:     {n:"Madurai",         s:"Tamil Nadu",         la:9.9252,  lo:78.1198, re:"South",     se:45, dr:"Medium",     ri:"Medium",    ar:850,  fy:[2015,2021],           nt:"Madurai's flood risk is tied to the Vaigai river. When rainfall in the Kodaikanal hills is extreme, Madurai's low-lying areas including the area near the Meenakshi temple are inundated."},
+  Mangalore:   {n:"Mangalore",       s:"Karnataka",          la:12.9141, lo:74.8560, re:"South",     se:65, dr:"Medium-Low", ri:"High",      ar:3440, fy:[2005,2014,2017,2021], nt:"Mangalore receives one of India's highest annual rainfalls. Located between the Western Ghats and the sea, it experiences intense flooding during heavy southwest monsoon events, particularly in the Nethravathi river basin."},
+  Warangal:    {n:"Warangal",        s:"Telangana",          la:17.9784, lo:79.5941, re:"South",     se:55, dr:"Medium-Low", ri:"Medium",    ar:1046, fy:[2010,2019,2022],      nt:"Warangal faces flooding from the Manair river and urban waterlogging during intense monsoon. Low-lying areas near tanks have been increasingly affected as natural water bodies are encroached upon."}
+};
+
+/* ════════════════════════════════════════════════
+   AUTH MODULE
+════════════════════════════════════════════════ */
+const Auth = (() => {
+  const KEY = 'sdess_users';
+
+  function hash(str) { return btoa(encodeURIComponent(str)); }
+
+  function getUsers() { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+  function saveUsers(u) { localStorage.setItem(KEY, JSON.stringify(u)); }
+
+  function getSession() {
+    const s = sessionStorage.getItem('sdess_session');
+    return s ? JSON.parse(s) : null;
+  }
+  function setSession(user) { sessionStorage.setItem('sdess_session', JSON.stringify(user)); }
+  function clearSession()   { sessionStorage.removeItem('sdess_session'); }
+
+  function ensureDemoUser() {
+    const users = getUsers();
+    if (!users.find(u => u.email === 'guest@sdess.in')) {
+      users.push({ id:1, name:'Demo User', email:'guest@sdess.in', pwd:hash('guest123'), watchlist:[], threshold:70, guest:false });
+      saveUsers(users);
+    }
+  }
+
+  function login(email, pwd) {
+    const users = getUsers();
+    const user = users.find(u => u.email === email.trim().toLowerCase() && u.pwd === hash(pwd));
+    if (!user) return { ok:false, err:'Invalid email or password.' };
+    setSession(user);
+    return { ok:true, user };
+  }
+
+  function register(name, email, pwd) {
+    if (!name.trim() || !email.trim() || !pwd) return { ok:false, err:'All fields are required.' };
+    if (pwd.length < 6) return { ok:false, err:'Password must be at least 6 characters.' };
+    const users = getUsers();
+    const emailLower = email.trim().toLowerCase();
+    if (users.find(u => u.email === emailLower)) return { ok:false, err:'This email is already registered.' };
+    const user = { id:Date.now(), name:name.trim(), email:emailLower, pwd:hash(pwd), watchlist:[], threshold:70, guest:false };
+    users.push(user);
+    saveUsers(users);
+    setSession(user);
+    return { ok:true, user };
+  }
+
+  function guestLogin() {
+    const user = { id:0, name:'Guest', email:'', watchlist:[], threshold:70, guest:true };
+    setSession(user);
+    return user;
+  }
+
+  function logout() { clearSession(); }
+
+  function updateWatchlist(list) {
+    const user = getSession();
+    if (!user || user.guest) return;
+    user.watchlist = list;
+    setSession(user);
+    const users = getUsers();
+    const idx = users.findIndex(u => u.id === user.id);
+    if (idx !== -1) { users[idx].watchlist = list; saveUsers(users); }
+  }
+
+  return { login, register, guestLogin, logout, getSession, ensureDemoUser, updateWatchlist };
+})();
+
+/* ════════════════════════════════════════════════
+   ALERT SYSTEM
+════════════════════════════════════════════════ */
+const AlertSystem = (() => {
+  const KEY = 'sdess_alerts_v2';
+
+  function getAlerts() { return JSON.parse(localStorage.getItem(KEY) || '[]'); }
+  function saveAlerts(a) { localStorage.setItem(KEY, JSON.stringify(a.slice(0,60))); }
+
+  function updateBadge() {
+    const n = getAlerts().filter(a => !a.read).length;
+    const el = document.getElementById('notif-badge');
+    if (!el) return;
+    el.textContent = n > 9 ? '9+' : n;
+    el.style.display = n > 0 ? 'flex' : 'none';
+  }
+
+  function add(city, score, level) {
+    const msgs = {
+      High: `${city} is at HIGH FLOOD RISK (score: ${score}/100). Conditions suggest imminent threat if rainfall continues. Activate preparedness measures.`,
+      Medium: `${city} shows MEDIUM flood risk (score: ${score}/100). Environmental conditions are trending toward elevated risk. Monitor closely.`,
+      Low: `${city} risk assessment complete — LOW risk (score: ${score}/100). Current conditions are within safe parameters.`
+    };
+    const alert = { id:Date.now(), city, score, level, msg:msgs[level]||msgs.Low, time:new Date().toISOString(), read:false };
+    const alerts = [alert, ...getAlerts()];
+    saveAlerts(alerts);
+    updateBadge();
+    if (level === 'High' || level === 'Medium') {
+      if (window.Notification && Notification.permission === 'granted') {
+        new Notification(`\u26a0\ufe0f ${level} Risk \u2014 ${city}`, { body:alert.msg });
+      }
+    }
+    return alert;
+  }
+
+  function markAllRead() {
+    const alerts = getAlerts().map(a => ({...a, read:true}));
+    saveAlerts(alerts);
+    updateBadge();
+  }
+
+  function formatTime(iso) {
+    const d = new Date(iso), now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return d.toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+  }
+
+  function renderPanel() {
+    const list = document.getElementById('notif-list');
+    if (!list) return;
+    const alerts = getAlerts();
+    if (!alerts.length) {
+      list.innerHTML = `<div class="notif-empty">No alerts yet.<br>Alerts appear here when risk levels are assessed for your watched cities.</div>`;
+    } else {
+      list.innerHTML = alerts.map(a => `
+        <div class="notif-item level-${a.level||'system'} ${a.read?'':'unread'}">
+          <div class="notif-item-top">
+            <span class="notif-city">${a.city}</span>
+            <span class="notif-time">${formatTime(a.time)}</span>
+          </div>
+          <p class="notif-msg">${a.msg}</p>
+        </div>`).join('');
+      markAllRead();
+      updateBadge();
+    }
+  }
+
+  return { add, getAlerts, updateBadge, markAllRead, renderPanel };
+})();
+
+/* ════════════════════════════════════════════════
+   WEATHER API MODULE
+   Source: Open-Meteo (open-source, no API key)
+════════════════════════════════════════════════ */
+const WeatherAPI = (() => {
+  const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+
+  function getCached(key) {
+    try {
+      const c = sessionStorage.getItem('wx_' + key);
+      if (!c) return null;
+      const { data, ts } = JSON.parse(c);
+      return (Date.now() - ts < CACHE_TTL) ? data : null;
+    } catch(e) { return null; }
+  }
+
+  function setCache(key, data) {
+    try { sessionStorage.setItem('wx_' + key, JSON.stringify({ data, ts:Date.now() })); } catch(e) {}
+  }
+
+  async function fetch14d(cityKey) {
+    const city = CITIES[cityKey];
+    if (!city) return null;
+
+    const cached = getCached(cityKey);
+    if (cached) return { ...cached, fromCache:true };
+
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${city.la}&longitude=${city.lo}&daily=precipitation_sum,temperature_2m_max&past_days=14&forecast_days=0&timezone=Asia%2FKolkata`;
+      const res = await window.fetch(url);
+      if (!res.ok) throw new Error('API error');
+      const json = await res.json();
+      const rain = (json.daily.precipitation_sum || []).map(v => v === null ? 0 : +v.toFixed(1));
+      const temp = (json.daily.temperature_2m_max || []).map(v => v === null ? 30 : +v.toFixed(1));
+      // Ensure we have at least 7 days
+      if (rain.length < 7) throw new Error('Insufficient data');
+      const data = { rain, temp, live:true };
+      setCache(cityKey, data);
+      return { ...data, fromCache:false };
+    } catch(err) {
+      console.warn('Weather API fallback:', err.message);
+      return null;
+    }
+  }
+
+  return { fetch14d };
+})();
+
+/* ════════════════════════════════════════════════
+   FALLBACK SAMPLE DATA
+   Used when API is unavailable
+════════════════════════════════════════════════ */
+const FALLBACK = {
+  Mumbai:      { rain:[4.2,6.8,9.1,18.4,22.0,35.6,41.2,38.9,52.3,67.8,74.1,81.5,78.3,92.6], temp:[29.4,30.1,29.8,30.5,31.2,30.8,29.6,29.2,28.8,28.4,28.1,27.9,27.6,27.3] },
+  Chennai:     { rain:[0,0,2.1,1.4,3.8,5.2,4.0,6.7,8.9,11.3,9.5,14.2,18.8,22.1],            temp:[32.1,33.4,34.2,33.8,34.5,35.1,34.9,35.6,36.2,35.8,36.4,37.1,36.8,37.4] },
+  Patna:       { rain:[12.3,15.6,18.9,22.4,28.1,31.5,27.8,33.2,41.6,55.9,63.4,72.1,68.5,85.3], temp:[33.2,34.1,34.8,35.3,34.7,33.9,34.2,33.6,32.8,32.1,31.5,31.2,30.8,30.4] },
+  Guwahati:    { rain:[18.5,24.3,31.2,28.6,35.8,42.1,38.7,46.3,52.8,61.4,58.9,71.2,76.8,88.4], temp:[30.5,31.2,30.8,31.4,30.9,30.2,29.8,29.4,28.9,28.5,28.2,27.8,27.5,27.1] },
+  Hyderabad:   { rain:[0,1.2,0.5,3.4,2.1,4.8,3.2,5.6,7.8,6.4,9.1,8.3,11.5,13.2],           temp:[35.8,36.4,37.1,36.8,37.5,38.2,37.9,38.6,39.1,38.8,39.4,40.1,39.7,40.3] },
+  Kolkata:     { rain:[8.4,11.2,14.7,19.3,23.6,31.2,29.8,38.4,44.7,51.3,58.9,63.2,71.5,79.8], temp:[31.4,32.1,32.8,33.2,32.7,32.1,31.6,31.2,30.8,30.4,30.1,29.8,29.5,29.2] },
+  Jaipur:      { rain:[0,0,0,1.2,0.8,2.4,1.9,3.1,2.7,4.5,3.8,5.2,4.9,6.3],                  temp:[38.4,39.1,39.8,40.3,41.2,40.8,41.5,42.1,41.8,42.4,43.1,42.7,43.4,44.1] },
+  Bhubaneswar: { rain:[9.2,13.4,17.8,24.5,29.3,36.7,33.1,42.8,49.6,58.3,64.7,71.9,80.2,91.5], temp:[32.8,33.4,34.1,33.7,34.4,33.9,33.2,32.6,32.1,31.8,31.4,31.1,30.8,30.5] }
+};
+
+function getFallback(cityKey) {
+  const fb = FALLBACK[cityKey];
+  if (fb) return { rain:fb.rain.slice(), temp:fb.temp.slice(), live:false };
+  // Generic fallback for cities not in sample data — use a low-risk pattern
+  const rain = Array.from({length:14}, (_,i) => +(Math.max(0,2+i*0.3+Math.random()*2).toFixed(1)));
+  const temp = Array.from({length:14}, () => +(28+Math.random()*6).toFixed(1));
+  return { rain, temp, live:false };
+}
+
+/* ════════════════════════════════════════════════
+   RISK ENGINE
+   Pure rule-based. No ML. Fully auditable.
+════════════════════════════════════════════════ */
+const RiskEngine = (() => {
+
+  function fAcceleration(rain) {
+    const n = rain.length, mid = Math.floor(n/2);
+    const early  = rain.slice(0,mid).reduce((a,b)=>a+b,0)/mid;
+    const recent = rain.slice(mid).reduce((a,b)=>a+b,0)/(n-mid);
+    const pct = early>0 ? ((recent-early)/early)*100 : (recent>0?100:0);
+    let score,detail;
+    if      (pct>=150){score=40;detail=`Rainfall has accelerated sharply — recent daily average (${recent.toFixed(1)} mm) is more than 2.5× the earlier average (${early.toFixed(1)} mm). Rapid accumulation at this rate is a strong precursor to drainage stress and flooding.`;}
+    else if (pct>=80) {score=28;detail=`Rainfall is rising at a notable rate. Recent average (${recent.toFixed(1)} mm/day) is ~${Math.round(pct)}% above the earlier window average (${early.toFixed(1)} mm/day). Drainage capacity may be approaching its limit.`;}
+    else if (pct>=30) {score=15;detail=`A moderate upward trend in rainfall is present. Recent daily average: ${recent.toFixed(1)} mm vs. earlier: ${early.toFixed(1)} mm. The situation warrants monitoring over the next 48 hours.`;}
+    else if (pct>0)   {score=6; detail=`Rainfall is marginally higher recently (${recent.toFixed(1)} mm/day) versus earlier (${early.toFixed(1)} mm/day). The increase is not alarming at current rates.`;}
+    else              {score=0; detail=`Rainfall is stable or declining — ${recent.toFixed(1)} mm/day recently versus ${early.toFixed(1)} mm/day earlier. No acceleration signal.`;}
+    return {score,max:40,detail,label:"Rainfall Acceleration",ico:"↑",early,recent,pct};
+  }
+
+  function fVolume(rain) {
+    const r3 = rain.slice(-3).reduce((a,b)=>a+b,0)/3;
+    let score,detail;
+    if      (r3>=70){score=30;detail=`3-day trailing average is ${r3.toFixed(1)} mm/day — a high-volume event. At this intensity, surface water accumulation begins even in areas with adequate drainage.`;}
+    else if (r3>=40){score=20;detail=`Recent 3-day average of ${r3.toFixed(1)} mm/day indicates heavy sustained rainfall. Drainage systems are likely near or exceeding design capacity.`;}
+    else if (r3>=20){score=10;detail=`Moderate sustained rainfall at ${r3.toFixed(1)} mm/day. Soil saturation is underway in low-permeability areas.`;}
+    else if (r3>=8) {score=4; detail=`Light to moderate rainfall (${r3.toFixed(1)} mm/day). Drainage stress is minimal at current intensity.`;}
+    else            {score=0; detail=`Recent rainfall is low (${r3.toFixed(1)} mm/day). No meaningful drainage stress.`;}
+    return {score,max:30,detail,label:"Recent Rainfall Volume",ico:"▪",r3};
+  }
+
+  function fHistory(sensitivity) {
+    const score = Math.round((sensitivity/100)*20);
+    let detail;
+    if      (sensitivity>=80){detail=`Very high historical sensitivity (${sensitivity}/100). This region sits in a structurally vulnerable zone — elevated river proximity, poor drainage, and multiple recorded flood events indicate a low threshold for inundation.`;}
+    else if (sensitivity>=60){detail=`Moderate-to-high historical sensitivity (${sensitivity}/100). Past flood events and terrain characteristics place this region above the baseline risk of inland or well-drained locations.`;}
+    else if (sensitivity>=40){detail=`Moderate historical sensitivity (${sensitivity}/100). Some structural exposure exists, but the region is not in a high-recurrence flood zone.`;}
+    else                     {detail=`Low historical sensitivity (${sensitivity}/100). This region has limited flood history and relatively favourable drainage conditions.`;}
+    return {score,max:20,detail,label:"Historical Sensitivity",ico:"◎"};
+  }
+
+  function fHeatRain(temp, rain) {
+    const t3=temp.slice(-3).reduce((a,b)=>a+b,0)/3, r3=rain.slice(-3).reduce((a,b)=>a+b,0)/3;
+    let score,detail;
+    if      (t3>=36&&r3>=30){score=10;detail=`High average temperature (${t3.toFixed(1)}°C) combined with heavy rainfall (${r3.toFixed(1)} mm/day). Heat-parched soil has reduced infiltration, significantly increasing surface runoff.`;}
+    else if (t3>=36&&r3>=15){score=5; detail=`Elevated temperatures (${t3.toFixed(1)}°C) with moderate recent rainfall (${r3.toFixed(1)} mm/day). Soil infiltration may be partially compromised, modestly increasing runoff.`;}
+    else                    {score=0; detail=`Temperature–rainfall interaction is not a significant risk factor currently (avg temp: ${t3.toFixed(1)}°C, avg rain: ${r3.toFixed(1)} mm/day).`;}
+    return {score,max:10,detail,label:"Heat–Rain Interaction",ico:"◈",t3,r3};
+  }
+
+  function calculate(rain, temp, sensitivity) {
+    const factors=[fAcceleration(rain),fVolume(rain),fHistory(sensitivity),fHeatRain(temp,rain)];
+    const total=Math.min(100,factors.reduce((s,f)=>s+f.score,0));
+    let level,desc;
+    if      (total>=71){level='High';  desc="Environmental conditions indicate elevated flood likelihood if rainfall continues at current rates. Decision-makers should consider activating preparedness protocols.";}
+    else if (total>=41){level='Medium';desc="Conditions are trending toward elevated risk. Close monitoring over the next 48–72 hours is advised. Review preparedness measures.";}
+    else               {level='Low';   desc="Current conditions do not indicate a near-term flood threat. Baseline preparedness protocols are sufficient.";}
+    return {total,level,desc,factors};
+  }
+
+  return {calculate};
+})();
+
+/* ════════════════════════════════════════════════
+   CHART ENGINE — Canvas, DPR-aware, no libraries
+════════════════════════════════════════════════ */
+function drawChart(id, data, labels, color, filled) {
+  const canvas = document.getElementById(id);
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1, cssW=canvas.clientWidth, cssH=canvas.clientHeight||190;
+  canvas.width=Math.round(cssW*dpr); canvas.height=Math.round(cssH*dpr);
+  const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr);
+  const W=cssW, H=cssH, pad={top:22,right:16,bottom:38,left:46};
+  const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom, n=data.length;
+  const yMax=(Math.max(...data)*1.18)||10;
+  const yMin=filled?0:Math.max(0,Math.min(...data)-2);
+  const xp=i=>pad.left+(i/(n-1))*cW;
+  const yp=v=>pad.top+cH-((v-yMin)/(yMax-yMin))*cH;
+
+  // Gridlines + Y labels
+  for(let i=0;i<=4;i++){
+    const y=pad.top+(i/4)*cH, val=yMax-(i/4)*(yMax-yMin);
+    ctx.strokeStyle='rgba(255,255,255,0.035)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke();
+    ctx.fillStyle='rgba(138,154,184,0.55)';
+    ctx.font=`10px 'IBM Plex Mono',monospace`; ctx.textAlign='right';
+    ctx.fillText(val.toFixed(val<10?1:0),pad.left-5,y+4);
+  }
+  // X labels
+  const step=Math.max(1,Math.ceil(n/6));
+  ctx.fillStyle='rgba(138,154,184,0.55)';
+  ctx.font=`10px 'IBM Plex Mono',monospace`; ctx.textAlign='center';
+  labels.forEach((l,i)=>{ if(i%step===0||i===n-1) ctx.fillText(l,xp(i),H-5); });
+
+  if(n<2) return;
+
+  if(filled){
+    const g=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
+    g.addColorStop(0,color+'30'); g.addColorStop(1,color+'00');
+    ctx.beginPath(); ctx.moveTo(xp(0),yp(data[0]));
+    for(let i=1;i<n;i++) ctx.lineTo(xp(i),yp(data[i]));
+    ctx.lineTo(xp(n-1),pad.top+cH); ctx.lineTo(xp(0),pad.top+cH);
+    ctx.closePath(); ctx.fillStyle=g; ctx.fill();
+  }
+  ctx.beginPath(); ctx.moveTo(xp(0),yp(data[0]));
+  for(let i=1;i<n;i++) ctx.lineTo(xp(i),yp(data[i]));
+  ctx.strokeStyle=color; ctx.lineWidth=1.8; ctx.lineJoin='round'; ctx.stroke();
+  for(let i=0;i<n;i++){
+    ctx.beginPath(); ctx.arc(xp(i),yp(data[i]),2.8,0,Math.PI*2);
+    ctx.fillStyle=color; ctx.fill();
+    ctx.strokeStyle='#080d16'; ctx.lineWidth=1.5; ctx.stroke();
+  }
+}
+
+function getDayLabels(n){
+  const t=new Date(),out=[];
+  for(let i=n-1;i>=0;i--){const d=new Date(t);d.setDate(t.getDate()-i);out.push(d.toLocaleDateString('en-IN',{day:'numeric',month:'short'}));}
+  return out;
+}
+
+/* ════════════════════════════════════════════════
+   TOAST HELPER
+════════════════════════════════════════════════ */
+function toast(msg, type='info', ms=3500) {
+  const el=document.createElement('div');
+  el.className=`toast toast-${type}`;
+  el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>{ el.style.animation='fadeOut 0.3s ease forwards'; setTimeout(()=>el.remove(),300); }, ms);
+}
+
+/* ════════════════════════════════════════════════
+   UI RENDERERS
+════════════════════════════════════════════════ */
+function renderRisk(risk) {
+  document.getElementById('r-score').textContent=risk.total;
+  const badge=document.getElementById('r-badge');
+  badge.textContent=risk.level+' Risk';
+  badge.className='risk-badge '+{Low:'badge-low',Medium:'badge-med',High:'badge-high'}[risk.level];
+  document.getElementById('r-marker').style.left=risk.total+'%';
+  document.getElementById('r-desc').textContent=risk.desc;
+}
+
+function renderTrend(currentScore, prevScore) {
+  const el=document.getElementById('r-trend');
+  if(!el||prevScore===null){el.innerHTML='';return;}
+  const diff=currentScore-prevScore;
+  if(Math.abs(diff)<2){el.innerHTML=`<span class="trend-flat">&#9654; Stable</span><span style="margin-left:6px;color:var(--t3)">(compared to prior window)</span>`;return;}
+  const cls=diff>0?'trend-up':'trend-down', arrow=diff>0?'▲':'▼';
+  el.innerHTML=`<span class="${cls}">${arrow} ${Math.abs(diff)} pts from prior assessment</span>`;
+}
+
+function renderFactors(factors) {
+  document.getElementById('factors-grid').innerHTML=factors.slice().sort((a,b)=>b.score-a.score).map(f=>`
+    <div class="factor-card">
+      <div class="factor-top">
+        <span class="factor-ico">${f.ico}</span>
+        <span class="factor-name">${f.label}</span>
+        <span class="factor-pts">${f.score}&thinsp;/&thinsp;${f.max}</span>
+      </div>
+      <div class="factor-track"><div class="factor-fill" style="width:${(f.score/f.max)*100}%"></div></div>
+      <p class="factor-text">${f.detail}</p>
+    </div>`).join('');
+}
+
+function renderProfile(cityKey) {
+  const c=CITIES[cityKey];
+  if(!c) return;
+  document.getElementById('rp-state').textContent=c.s;
+  document.getElementById('rp-rain').textContent=c.ar+' mm';
+  document.getElementById('rp-sens').textContent=c.se+' / 100';
+  document.getElementById('rp-drain').textContent=c.dr;
+  document.getElementById('rp-river').textContent=c.ri;
+  document.getElementById('rp-years').textContent=c.fy.join(', ')||'No record';
+  document.getElementById('rp-note').textContent=c.nt;
+}
+
+function renderTransparency(rain, temp, city, risk, isLive) {
+  const avg3=arr=>(arr.slice(-3).reduce((a,b)=>a+b,0)/3).toFixed(1);
+  const mid=Math.floor(rain.length/2);
+  const earlyAvg=(rain.slice(0,mid).reduce((a,b)=>a+b,0)/mid).toFixed(1);
+  const f=risk.factors;
+  const rows=[
+    ['City',                  city.n+', '+city.s,                    '—'],
+    ['Data source',           isLive?'Open-Meteo API (live)':'Sample data (API unavailable)', '—'],
+    ['Analysis window',       state.days+' days',                     '—'],
+    ['Peak single-day rain',  Math.max(...rain).toFixed(1)+' mm',     'Highest value in window'],
+    ['3-day trailing rain avg',avg3(rain)+' mm/day',                  'Days –3 to present'],
+    ['Early-window rain avg', earlyAvg+' mm/day',                     'First half of window'],
+    ['3-day trailing temp avg',avg3(temp)+'°C',                       'Days –3 to present'],
+    ['Historical sensitivity',city.se+' / 100',                       'Manually calibrated from records'],
+    ['Drainage capacity',     city.dr,                                 'Terrain classification'],
+    ['River proximity',       city.ri,                                 'Terrain classification'],
+    null,
+    ['Acceleration factor',   f[0].score+' / 40 pts',                'Rule: rainfall early→recent trend'],
+    ['Volume factor',         f[1].score+' / 30 pts',                'Rule: 3-day trailing average'],
+    ['Historical factor',     f[2].score+' / 20 pts',                'Rule: sensitivity score weighted'],
+    ['Heat–rain factor',      f[3].score+' / 10 pts',                'Rule: high temp + heavy rain'],
+    null,
+    ['Total risk score',      risk.total+' / 100',                   'Sum of all four factors'],
+    ['Classification',        risk.level+' Risk',                    '0–40 Low · 41–70 Medium · 71–100 High'],
+  ];
+  document.getElementById('trans-tbody').innerHTML=rows.map((r,i)=>{
+    if(!r) return `<tr class="tr-div"><td colspan="3"></td></tr>`;
+    return `<tr class="${i%2===0?'tr-even':'tr-odd'}"><td class="td-k">${r[0]}</td><td class="td-v">${r[1]}</td><td class="td-n">${r[2]}</td></tr>`;
+  }).join('');
+}
+
+function renderRankings() {
+  const sortedKeys=Object.keys(CITIES).sort((a,b)=>CITIES[b].se-CITIES[a].se).slice(0,20);
+  const levelFromSe=se=>se>=71?'High':se>=41?'Medium':'Low';
+  const badgeClass={High:'badge-high',Medium:'badge-med',Low:'badge-low'};
+  const seScore=se=>Math.min(100,Math.round(se*0.9));
+  document.getElementById('rankings-body').innerHTML=sortedKeys.map(k=>{
+    const c=CITIES[k], lv=levelFromSe(c.se), sc=seScore(c.se);
+    return `<div class="rank-row" onclick="selectCity('${k}')">
+      <div><div class="rank-city">${c.n}</div></div>
+      <div class="rank-state" style="font-size:11px;color:var(--t3)">${c.s}</div>
+      <div class="rank-score">${c.se}<span style="color:var(--t3);font-size:10px">/100</span></div>
+      <div><span class="rank-badge ${badgeClass[lv]}">${lv}</span></div>
+      <div class="rank-trend" style="color:var(--t3);font-size:11px">${c.re}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderWatchlist() {
+  const user=Auth.getSession();
+  const list=user?user.watchlist:[];
+  const panel=document.getElementById('watchlist-panel');
+  if(!panel) return;
+  if(!list.length){
+    panel.innerHTML=`<div class="watchlist-empty">No cities monitored yet.<br>Add cities using the button below.</div>`;
+    return;
+  }
+  const levelFromSe=se=>se>=71?'High':se>=41?'Medium':'Low';
+  const badgeClass={High:'badge-high',Medium:'badge-med',Low:'badge-low'};
+  panel.innerHTML=list.map(k=>{
+    const c=CITIES[k];
+    if(!c) return '';
+    const lv=levelFromSe(c.se);
+    return `<div class="watchlist-item" onclick="selectCity('${k}')">
+      <div><div class="wi-name">${c.n}</div><div class="wi-state">${c.s}</div></div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="wi-badge ${badgeClass[lv]}">${lv}</span>
+        <button class="btn-watch-remove" onclick="event.stopPropagation();removeFromWatch('${k}')" title="Remove">&times;</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setDataTag(state_) {
+  const el=document.getElementById('data-tag');
+  if(!el) return;
+  if(state_==='live')    { el.className='data-source-tag tag-live';    el.innerHTML='&#9679; Live Data'; }
+  else if(state_==='demo'){ el.className='data-source-tag tag-demo';   el.innerHTML='&#9679; Demo Mode'; }
+  else                    { el.className='data-source-tag tag-loading'; el.innerHTML='&#9679; Fetching…'; }
+}
+
+/* ════════════════════════════════════════════════
+   STATE & CONTROLLER
+════════════════════════════════════════════════ */
+const state = { city:'Mumbai', days:7, prevScore:null, refreshTimer:null };
+let currentRain=[], currentTemp=[], currentLive=false;
+
+async function update(cityKey) {
+  cityKey = cityKey || state.city;
+  state.city = cityKey;
+
+  const c = CITIES[cityKey];
+  if (!c) return;
+
+  // Show loading
+  setDataTag('loading');
+  document.getElementById('r-score').textContent='—';
+  document.getElementById('r-desc').textContent='Fetching live weather data…';
+
+  // Fetch weather
+  let wxData = await WeatherAPI.fetch14d(cityKey);
+  if (!wxData) wxData = { ...getFallback(cityKey), live:false };
+
+  const n = state.days;
+  const rain = wxData.rain.slice(-n);
+  const temp = wxData.temp.slice(-n);
+  currentRain = rain; currentTemp = temp; currentLive = wxData.live;
+
+  // Calculate risk
+  const risk = RiskEngine.calculate(rain, temp, c.se);
+
+  // Add alert if High or Medium
+  AlertSystem.add(c.n, risk.total, risk.level);
+
+  // Render
+  renderRisk(risk);
+  renderTrend(risk.total, state.prevScore);
+  renderFactors(risk.factors);
+  renderTransparency(rain, temp, c, risk, wxData.live);
+  renderProfile(cityKey);
+
+  // Update chart stats
+  document.getElementById('ch-rain-stat').textContent=`Peak: ${Math.max(...rain).toFixed(1)} mm`;
+  document.getElementById('ch-temp-stat').textContent=`Max: ${Math.max(...temp).toFixed(1)}°C`;
+
+  // Charts
+  const lbl = getDayLabels(n);
+  requestAnimationFrame(()=>{
+    drawChart('chart-rain', rain, lbl, '#4d94ff', true);
+    drawChart('chart-temp', temp, lbl, '#e07a40', false);
+  });
+
+  setDataTag(wxData.live ? 'live' : 'demo');
+  state.prevScore = risk.total;
+
+  if (!wxData.live) toast('Live API unavailable — showing sample data for this city.','warn');
+  else if (!wxData.fromCache) toast(`Live data loaded for ${c.n}.`,'success',2000);
+}
+
+function selectCity(key) {
+  const sel=document.getElementById('city-select');
+  if(sel) sel.value=key;
+  state.prevScore=null;
+  update(key);
+}
+
+function addCurrentToWatch() {
+  const user=Auth.getSession();
+  if(!user){toast('Sign in to save a watchlist.','warn');return;}
+  if(user.guest){toast('Watchlist not available in Guest mode. Please register.','info');return;}
+  const list=user.watchlist||[];
+  if(list.includes(state.city)){toast(`${CITIES[state.city]?.n||state.city} is already in your watchlist.`,'info');return;}
+  list.push(state.city);
+  Auth.updateWatchlist(list);
+  user.watchlist=list;
+  sessionStorage.setItem('sdess_session',JSON.stringify(user));
+  renderWatchlist();
+  toast(`${CITIES[state.city]?.n||state.city} added to watchlist. &#9733;`,'success');
+}
+
+function removeFromWatch(key) {
+  const user=Auth.getSession();
+  if(!user) return;
+  user.watchlist=(user.watchlist||[]).filter(k=>k!==key);
+  Auth.updateWatchlist(user.watchlist);
+  sessionStorage.setItem('sdess_session',JSON.stringify(user));
+  renderWatchlist();
+  toast(`${CITIES[key]?.n||key} removed from watchlist.`,'info');
+}
+
+async function scanTopCities() {
+  const btn=document.getElementById('btn-scan');
+  if(!btn||btn.disabled) return;
+  btn.disabled=true; btn.textContent='Scanning…';
+  toast('Scanning top-risk cities… This may take a moment.','info',4000);
+  const topKeys=Object.keys(CITIES).sort((a,b)=>CITIES[b].se-CITIES[a].se).slice(0,8);
+  for(const key of topKeys) {
+    const wxData=await WeatherAPI.fetch14d(key);
+    if(wxData){
+      const c=CITIES[key];
+      const rain=wxData.rain.slice(-7), temp=wxData.temp.slice(-7);
+      const risk=RiskEngine.calculate(rain,temp,c.se);
+      if(risk.level==='High') AlertSystem.add(c.n,risk.total,risk.level);
+    }
+    await new Promise(r=>setTimeout(r,300));
+  }
+  btn.disabled=false; btn.textContent='&#9741; Scan Top-Risk Cities';
+  AlertSystem.updateBadge();
+  toast('Scan complete. Check the alert panel for results.','success');
+}
+
+function manualRefresh() {
+  const btn=document.getElementById('btn-refresh');
+  if(btn) btn.style.animation='spin 1s linear infinite';
+  // Clear cache for current city
+  try{ sessionStorage.removeItem('wx_'+state.city); }catch(e){}
+  update(state.city).finally(()=>{
+    if(btn) btn.style.animation='';
+  });
+}
+
+/* ════════════════════════════════════════════════
+   NOTIFICATION PANEL
+════════════════════════════════════════════════ */
+function toggleNotifPanel() {
+  const overlay=document.getElementById('notif-overlay');
+  const panel=document.getElementById('notif-panel');
+  const isOpen=panel.classList.contains('open');
+  overlay.classList.toggle('open',!isOpen);
+  panel.classList.toggle('open',!isOpen);
+  if(!isOpen) AlertSystem.renderPanel();
+}
+
+/* ════════════════════════════════════════════════
+   AUTH TAB SWITCH
+════════════════════════════════════════════════ */
+function switchTab(tab) {
+  document.getElementById('form-login').style.display=tab==='login'?'block':'none';
+  document.getElementById('form-signup').style.display=tab==='signup'?'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='signup')));
+}
+
+function checkPwdStrength(pwd) {
+  const fill=document.getElementById('pwd-fill');
+  if(!fill) return;
+  const len=pwd.length;
+  let pct=0,color='var(--high)';
+  if(len>=12){pct=100;color='var(--low)';}
+  else if(len>=8){pct=66;color='var(--med)';}
+  else if(len>=6){pct=33;color='var(--high)';}
+  fill.style.width=pct+'%'; fill.style.background=color;
+}
+
+/* ════════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════════ */
+function doLogin() {
+  const email=document.getElementById('l-email').value;
+  const pwd=document.getElementById('l-pwd').value;
+  const err=document.getElementById('l-error');
+  const res=Auth.login(email,pwd);
+  if(!res.ok){err.textContent=res.err;err.classList.add('show');return;}
+  err.classList.remove('show');
+  afterAuth(res.user);
+}
+
+function doRegister() {
+  const name=document.getElementById('s-name').value;
+  const email=document.getElementById('s-email').value;
+  const pwd=document.getElementById('s-pwd').value;
+  const err=document.getElementById('s-error');
+  const res=Auth.register(name,email,pwd);
+  if(!res.ok){err.textContent=res.err;err.classList.add('show');return;}
+  err.classList.remove('show');
+  afterAuth(res.user);
+}
+
+function doGuest() {
+  const user=Auth.guestLogin();
+  afterAuth(user);
+}
+
+function afterAuth(user) {
+  document.getElementById('pg-auth').style.display='none';
+  document.getElementById('pg-landing').style.display='flex';
+  document.getElementById('l-user-label').textContent=user.name;
+  // Request notification permission
+  if(window.Notification && Notification.permission==='default') {
+    Notification.requestPermission();
+  }
+}
+
+function showDash() {
+  document.getElementById('pg-landing').style.display='none';
+  document.getElementById('pg-dash').style.display='block';
+  const user=Auth.getSession();
+  document.getElementById('d-user-name').textContent=user?user.name:'Guest';
+  document.getElementById('d-ts').textContent=new Date().toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  AlertSystem.updateBadge();
+  renderWatchlist();
+  renderRankings();
+  // Auto-select first watched city if available
+  const wl=(user&&user.watchlist)||[];
+  if(wl.length) state.city=wl[0];
+  const sel=document.getElementById('city-select');
+  if(sel) sel.value=state.city;
+  requestAnimationFrame(()=>update(state.city));
+  // Auto-refresh every 30 min
+  clearInterval(state.refreshTimer);
+  state.refreshTimer=setInterval(()=>{ try{sessionStorage.removeItem('wx_'+state.city);}catch(e){} update(state.city); }, 30*60*1000);
+}
+
+function showLanding() {
+  document.getElementById('pg-dash').style.display='none';
+  document.getElementById('pg-landing').style.display='flex';
+  clearInterval(state.refreshTimer);
+}
+
+function doLogout() {
+  clearInterval(state.refreshTimer);
+  Auth.logout();
+  document.getElementById('pg-dash').style.display='none';
+  document.getElementById('pg-landing').style.display='none';
+  document.getElementById('pg-auth').style.display='flex';
+}
+
+/* ════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  Auth.ensureDemoUser();
+
+  // Check existing session
+  const session=Auth.getSession();
+  if(session){
+    document.getElementById('pg-auth').style.display='none';
+    afterAuth(session);
+  }
+
+  // Populate city dropdown grouped by region
+  const sel=document.getElementById('city-select');
+  const regions=['North','East','Northeast','West','Central','Northwest','South'];
+  regions.forEach(re=>{
+    const grp=document.createElement('optgroup');
+    grp.label=re+' India';
+    Object.entries(CITIES).filter(([,c])=>c.re===re).forEach(([k,c])=>{
+      const opt=document.createElement('option');
+      opt.value=k; opt.textContent=`${c.n}, ${c.s}`;
+      if(k===state.city) opt.selected=true;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+
+  // Controls
+  sel.addEventListener('change', e=>{
+    state.prevScore=null;
+    update(e.target.value);
+  });
+  document.querySelectorAll('.win-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.win-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      state.days=parseInt(btn.dataset.days);
+      update(state.city);
+    });
+  });
+
+  // Resize → redraw charts
+  let rt;
+  window.addEventListener('resize',()=>{
+    clearTimeout(rt);
+    rt=setTimeout(()=>{
+      if(currentRain.length && document.getElementById('pg-dash').style.display!=='none'){
+        const lbl=getDayLabels(state.days);
+        drawChart('chart-rain',currentRain,lbl,'#4d94ff',true);
+        drawChart('chart-temp',currentTemp,lbl,'#e07a40',false);
+      }
+    },200);
+  });
+
+  // Enter key on auth inputs
+  ['l-email','l-pwd'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+  });
+  ['s-name','s-email','s-pwd'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{ if(e.key==='Enter') doRegister(); });
+  });
+});
+
+</script>
+</body>
+</html>"""
+
